@@ -18,13 +18,13 @@ const selectedIcon = ref(null);
 const bgColor = ref('#ffffff');
 
 const socialOptions = [
-  { name: 'Instagram', icon: Instagram, color: 'text-pink-600' },
-  { name: 'GitHub', icon: Github, color: 'text-gray-900' },
-  { name: 'LinkedIn', icon: Linkedin, color: 'text-blue-700' },
-  { name: 'YouTube', icon: Youtube, color: 'text-red-600' },
-  { name: 'Twitter (X)', icon: Twitter, color: 'text-black' },
-  { name: 'TikTok', icon: Music, color: 'text-black' }, // Using Music as placeholder
-  { name: 'Vimeo', icon: Video, color: 'text-blue-400' },
+  { name: 'Instagram', icon: Instagram, color: 'text-pink-600', bg: '#FCE7F3' }, // Pink 100
+  { name: 'GitHub', icon: Github, color: 'text-gray-900', bg: '#F3F4F6' }, // Gray 100
+  { name: 'LinkedIn', icon: Linkedin, color: 'text-blue-700', bg: '#DBEAFE' }, // Blue 100
+  { name: 'YouTube', icon: Youtube, color: 'text-red-600', bg: '#FEE2E2' }, // Red 100
+  { name: 'Twitter (X)', icon: Twitter, color: 'text-black', bg: '#F3F4F6' },
+  { name: 'TikTok', icon: Music, color: 'text-black', bg: '#F3F4F6' },
+  { name: 'Vimeo', icon: Video, color: 'text-blue-400', bg: '#E0F2FE' },
 ];
 
 // Initialize form when opening in edit mode
@@ -37,8 +37,6 @@ watch(() => props.isOpen, (newVal) => {
         title.value = w.title || '';
         textContent.value = w.content || '';
         bgColor.value = w.bgColor || '#ffffff';
-         // Find icon if possible, or keep as is (icon saving logic needs refinement in real app)
-         // For now reset icon selection visually but keep logic simple
     } else if (newVal) {
         // Reset defaults
          url.value = '';
@@ -49,6 +47,15 @@ watch(() => props.isOpen, (newVal) => {
          activeTab.value = 'social';
     }
 });
+
+function selectSocial(opt) {
+    selectedIcon.value = opt.icon;
+    title.value = opt.name;
+    // Auto-set background color if not editing custom one, or just set it
+    if (!props.editMode || bgColor.value === '#ffffff') {
+        bgColor.value = opt.bg || '#ffffff';
+    }
+}
 
 function handleSubmit() {
     let widget = {
@@ -122,7 +129,7 @@ function close() {
             <button 
               v-for="opt in socialOptions" 
               :key="opt.name"
-              @click="selectedIcon = opt.icon; title = opt.name"
+              @click="selectSocial(opt)"
               class="flex flex-col items-center p-2 rounded-xl border-2 transition-all"
               :class="selectedIcon === opt.icon ? 'border-black bg-gray-50' : 'border-transparent hover:bg-gray-50'"
             >

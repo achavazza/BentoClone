@@ -5,7 +5,7 @@ import ProfileSidebar from './components/ProfileSidebar.vue'
 import BentoGrid from './components/BentoGrid.vue'
 import AddWidgetModal from './components/AddWidgetModal.vue'
 import ShareModal from './components/ShareModal.vue'
-import { Edit2, Check } from 'lucide-vue-next'
+import { Edit2, Check, Plus } from 'lucide-vue-next'
 import { supabase } from './lib/supabase'
 
 const store = useProfileStore()
@@ -95,6 +95,15 @@ function toggleEdit() {
         @edit-item="openEditModal"
         @add-item="openAddModal" 
       />
+
+      <!-- Floating Add Button (only when logged in) -->
+      <button 
+        v-if="store.user"
+        @click="openAddModal"
+        class="fixed bottom-8 right-8 z-50 p-4 bg-black text-white rounded-full shadow-2xl hover:scale-110 transition-transform active:scale-95"
+      >
+        <Plus class="w-6 h-6" />
+      </button>
     </main>
 
     <!-- Modals -->
