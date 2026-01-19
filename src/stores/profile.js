@@ -205,19 +205,38 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function updateHandle(username) {
-        if (!user.value) return false
+        if (!user.value || !profile.value) return { success: false, error: 'Not logged in' }
 
+        // 1. Rate Limit Check (24h)
+        if (profile.value.handle_updated_at) {
+            const lastUpdate = new Date(profile.value.handle_updated_at).getTime()
+            const now = new Date().getTime()
+            const diffHours = (now - lastUpdate) / (1000 * 60 * 60)
+            if (diffHours < 24) {
+                const remaining = Math.ceil(24 - diffHours)
+                return { success: false, error: `You can change your handle again in ${remaining} hours.` }
+            }
+        }
+
+        // 2. Uniqueness Check
+        const isAvailable = await checkHandleAvailability(username)
+        if (!isAvailable) return { success: false, error: 'This handle is already taken.' }
+
+        // 3. Update Sync
         const { error } = await supabase
             .from('profiles')
-            .update({ username: username })
+            .update({
+                username: username,
+                handle_updated_at: new Date().toISOString()
+            })
             .eq('id', user.value.id)
 
         if (!error) {
-            // Update local profile state
-            if (profile.value) profile.value.username = username
-            return true
+            profile.value.username = username
+            profile.value.handle_updated_at = new Date().toISOString()
+            return { success: true }
         }
-        return false
+        return { success: false, error: error.message }
     }
 
     async function updateProfile(updates) {

@@ -81,14 +81,16 @@ function handleSubmit() {
     emit('close');
 }
 
+function close() {
+  emit('close');
+}
+
 function handleDelete() {
     if (confirm('Are you sure you want to delete this widget?')) {
         emit('delete', props.existingWidget.id);
         emit('close');
     }
 }
-
-// ...
 </script>
 
 <template>
@@ -96,20 +98,20 @@ function handleDelete() {
     <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 focus-within:ring-0">
       <div class="p-4 border-b border-gray-100 flex justify-between items-center">
         <h3 class="font-bold text-lg">{{ editMode ? 'Edit Widget' : 'Add to Bento' }}</h3>
-        <button @click="close" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <button @click="close" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
           <X class="w-5 h-5" />
         </button>
       </div>
 
-      <div class="p-6 max-h-[80vh] overflow-y-auto">
+      <div class="p-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
         <!-- Tabs -->
-        <div v-if="!editMode" class="flex gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
+        <div v-if="!editMode" class="flex gap-2 mb-6 p-1 bg-gray-100/80 rounded-2xl">
           <button 
             v-for="tab in ['social', 'text', 'image']" 
             :key="tab"
             @click="activeTab = tab"
-            class="flex-1 py-2 text-sm font-medium rounded-lg capitalize transition-all"
-            :class="activeTab === tab ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-black'"
+            class="flex-1 py-2 text-sm font-bold rounded-xl capitalize transition-all"
+            :class="activeTab === tab ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-black'"
           >
             {{ tab }}
           </button>
@@ -118,68 +120,77 @@ function handleDelete() {
         <!-- Forms -->
         <div class="space-y-6">
             <!-- Social Grid -->
-            <div v-if="activeTab === 'social' && !editMode" class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1">
+            <div v-if="activeTab === 'social' && !editMode" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
                 <button 
                 v-for="opt in socialOptions" 
                 :key="opt.name"
                 @click="selectSocial(opt)"
-                class="flex flex-col items-center p-2 rounded-xl border-2 transition-all hover:bg-gray-50"
-                :class="selectedIcon === opt.icon ? 'border-black bg-gray-50' : 'border-transparent'"
+                class="flex flex-col items-center p-3 rounded-2xl border-2 transition-all hover:bg-gray-50 group"
+                :class="selectedIcon === opt.icon ? 'border-black bg-gray-50' : 'border-gray-50'"
                 >
-                <i :class="[opt.icon, 'text-2xl mb-1']" ></i>
-                <span class="text-[10px] font-medium text-center leading-tight">{{ opt.name }}</span>
+                <i :class="[opt.icon, 'text-2xl mb-1 group-hover:scale-110 transition-transform']" ></i>
+                <span class="text-[10px] font-bold text-center leading-tight">{{ opt.name }}</span>
                 </button>
             </div>
 
             <!-- Inputs Base -->
             <div class="space-y-4">
                 <div v-if="activeTab === 'text'">
-                    <textarea v-model="textContent" rows="4" placeholder="Write something..." class="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/10 outline-none resize-none"></textarea>
+                    <textarea v-model="textContent" rows="4" placeholder="Write something..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none resize-none font-medium"></textarea>
                 </div>
                 <div v-else>
-                    <input v-model="url" type="url" :placeholder="activeTab === 'image' ? 'Image URL...' : 'Link URL...'" class="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/10 outline-none" />
+                    <input v-model="url" type="url" :placeholder="activeTab === 'image' ? 'Image URL...' : 'Link URL...'" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
                 </div>
 
                 <!-- Extended Details -->
-                <div v-if="editMode || activeTab !== 'social'" class="space-y-4 pt-4 border-t border-gray-100">
-                    <input v-model="title" type="text" placeholder="Custom Title (optional)" class="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/10 outline-none" />
+                <div v-if="editMode || activeTab !== 'social'" class="space-y-6 pt-6 border-t border-gray-100">
+                    <div>
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Custom Title</label>
+                        <input v-model="title" type="text" placeholder="e.g. My Portfolio" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-bold" />
+                    </div>
                     
                     <!-- Size Selector -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Box Size</label>
-                        <div class="grid grid-cols-4 gap-2">
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Box Size</label>
+                        <div class="grid grid-cols-4 gap-3">
                             <button 
                                 v-for="s in ['1x1', '2x1', '1x2', '2x2']" 
                                 :key="s" 
                                 @click="size = s"
-                                class="py-2 text-xs font-bold rounded-lg border-2 transition-all"
+                                class="aspect-square flex flex-col items-center justify-center gap-2 rounded-2xl border-2 transition-all"
                                 :class="size === s ? 'border-black bg-black text-white' : 'border-gray-100 text-gray-400 hover:border-gray-200'"
                             >
-                                {{ s }}
+                                <!-- Visual Representation -->
+                                <div class="grid gap-0.5" :class="s === '1x1' ? 'grid-cols-1' : (s === '2x1' ? 'grid-cols-2' : (s === '1x2' ? 'grid-cols-1' : 'grid-cols-2'))">
+                                    <div v-for="i in (s === '1x1' ? 1 : (s === '2x2' ? 4 : 2))" :key="i" class="w-1.5 h-1.5 rounded-sm" :class="size === s ? 'bg-white' : 'bg-gray-300'"></div>
+                                </div>
+                                <span class="text-[10px] font-black">{{ s }}</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Background Color -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Background Color</label>
-                        <div class="flex gap-2">
-                            <input type="color" v-model="bgColor" class="h-10 w-10 rounded-lg cursor-pointer border-none bg-transparent" />
-                            <input type="text" v-model="bgColor" class="flex-1 p-2 bg-gray-50 rounded-xl text-sm" />
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Decoration</label>
+                        <div class="flex gap-3 items-center p-1 bg-gray-50 rounded-2xl">
+                             <div class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                 <input type="color" v-model="bgColor" class="absolute -inset-2 w-[150%] h-[150%] cursor-pointer border-none bg-transparent" />
+                             </div>
+                             <input type="text" v-model="bgColor" class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-mono font-bold uppercase" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-2 pt-4">
-                <button @click="handleSubmit" class="w-full py-3 bg-black text-white rounded-xl font-bold hover:bg-gray-800 transition-transform active:scale-95 shadow-lg shadow-black/10">
+            <div class="flex flex-col gap-3 pt-4 pb-2">
+                <button @click="handleSubmit" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10">
                     {{ editMode ? 'Save Changes' : 'Add Widget' }}
                 </button>
                 
                 <button 
                     v-if="editMode" 
                     @click="handleDelete" 
-                    class="w-full py-3 text-red-500 font-bold hover:bg-red-50 rounded-xl transition-colors"
+                    class="w-full py-3 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-colors text-sm"
                 >
                     Delete Widget
                 </button>

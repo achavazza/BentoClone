@@ -6,6 +6,7 @@ import ProfileSidebar from '../components/ProfileSidebar.vue'
 import BentoGrid from '../components/BentoGrid.vue'
 import AddWidgetModal from '../components/AddWidgetModal.vue'
 import ShareModal from '../components/ShareModal.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 import { Edit2, Check, Plus, Loader2 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 
@@ -13,6 +14,7 @@ const route = useRoute()
 const store = useProfileStore()
 const showAddModal = ref(false)
 const showShareModal = ref(false)
+const showSettingsModal = ref(false)
 const isEditingWidget = ref(false)
 const widgetToEdit = ref(null)
 const currentUrl = window.location.href
@@ -91,6 +93,7 @@ function toggleEdit() {
         @login="store.signInWithGoogle"
         @logout="store.signOut"
         @share="showShareModal = true"
+        @open-settings="showSettingsModal = true"
         @update="store.updateProfile"
         @upload-avatar="store.uploadAvatar"
       />
@@ -98,7 +101,7 @@ function toggleEdit() {
 
     <!-- Main Content -->
     <main class="flex-1 h-full md:h-screen relative overflow-hidden">
-      <!-- Edit Toggle (Only for Owner) -->
+      <!-- Edit Toggle (Only for Owner)
       <div v-if="store.isOwner" class="absolute top-4 right-4 z-50 flex gap-2">
         <button 
           @click="toggleEdit"
@@ -108,7 +111,7 @@ function toggleEdit() {
           <Check v-if="store.toggleEditMode" class="w-5 h-5" />
           <Edit2 v-else class="w-5 h-5" />
         </button>
-      </div>
+      </div> -->
 
       <BentoGrid 
         :items="store.widgets" 
@@ -140,5 +143,6 @@ function toggleEdit() {
         @delete="store.deleteWidget"
     />
     <ShareModal :isOpen="showShareModal" :url="currentUrl" @close="showShareModal = false" />
+    <SettingsModal :isOpen="showSettingsModal" :currentHandle="store.profile.username" @close="showSettingsModal = false" />
   </div>
 </template>

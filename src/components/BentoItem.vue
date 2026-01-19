@@ -21,9 +21,9 @@ const emit = defineEmits(['edit']);
 
 const sizeClasses = computed(() => {
   switch (props.item.size) {
-    case '1x2': return 'col-span-1 row-span-2';
+    case '1x2': return 'col-span-1 row-span-2 min-h-[340px] md:min-h-[380px]';
     case '2x1': return 'col-span-2 row-span-1';
-    case '2x2': return 'col-span-2 row-span-2';
+    case '2x2': return 'col-span-2 row-span-2 min-h-[340px] md:min-h-[380px]';
     default: return 'col-span-1 row-span-1';
   }
 });
@@ -35,7 +35,7 @@ const bgStyle = computed(() => {
 
 <template>
   <div 
-    class="relative group bg-white rounded-2xl border border-transparent hover:border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
+    class="relative group bg-white rounded-3xl border border-transparent hover:border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col cursor-pointer"
     :class="[sizeClasses, { 'border-dashed border-2 border-gray-300 shadow-none hover:shadow-none bg-gray-50': item.type === 'placeholder' }]"
     :style="item.type !== 'placeholder' ? bgStyle : {}"
   >

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { MapPin, Share2, Camera } from 'lucide-vue-next';
+import { MapPin, Share2, Camera, Settings } from 'lucide-vue-next';
 
 const props = defineProps({
   profile: {
@@ -18,7 +18,7 @@ const props = defineProps({
   user: Object
 });
 
-const emit = defineEmits(['login', 'logout', 'share', 'update', 'upload-avatar']);
+const emit = defineEmits(['login', 'logout', 'share', 'update', 'upload-avatar', 'open-settings']);
 
 const isOwner = computed(() => props.user && props.profile && props.user.id === props.profile.id);
 
@@ -60,7 +60,12 @@ function updateField(field, event) {
     </div>
     
     <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-1">{{ profile.name }}</h1>
-    <p class="text-gray-500 font-medium mb-4">@{{ profile.username }}</p>
+    <p class="text-gray-500 font-medium mb-4 flex items-center justify-center gap-2">
+      @{{ profile.username }}
+      <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
+        <Settings class="w-3.5 h-3.5" />
+      </button>
+    </p>
     
     <!-- Bio (Editable) -->
     <p 
