@@ -52,7 +52,7 @@ const bgStyle = computed(() => {
 
     <!-- Content -->
     <div v-if="item.type === 'social'" class="flex flex-col items-center gap-2">
-      <component :is="item.icon" v-if="item.icon" class="w-8 h-8 text-gray-800" />
+      <i v-if="item.icon" :class="[item.icon, 'text-4xl']"></i>
       <span class="font-semibold text-gray-900">{{ item.title }}</span>
     </div>
 

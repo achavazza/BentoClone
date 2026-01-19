@@ -1,42 +1,89 @@
 <script setup>
-import { MapPin, Share2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { MapPin, Share2, Camera } from 'lucide-vue-next';
 
-defineProps({
+const props = defineProps({
   profile: {
     type: Object,
     required: true,
     default: () => ({
       name: 'User Name',
       handle: '@username',
-      bio: 'Digital Creator & Developer. Building cool things with Vue.',
+      bio: 'Digital Creator & Developer.',
       location: 'San Francisco, CA',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+      id: null
     })
   },
   user: Object
 });
 
-defineEmits(['login', 'logout', 'share']);
+const emit = defineEmits(['login', 'logout', 'share', 'update', 'upload-avatar']);
+
+const isOwner = computed(() => props.user && props.profile && props.user.id === props.profile.id);
+
+const fileInput = ref(null);
+
+function triggerUpload() {
+    if (!isOwner.value) return;
+    fileInput.value.click();
+}
+
+function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) emit('upload-avatar', file);
+}
+
+function updateField(field, event) {
+    const value = event.target.innerText;
+    if (value !== props.profile[field]) {
+        emit('update', { [field]: value });
+    }
+}
 </script>
 
 <template>
-  <div class="h-full flex flex-col items-center text-center p-8 sticky top-0">
+  <div class="h-full flex flex-col items-center text-center p-8 sticky top-0 overflow-y-auto">
+    <!-- Avatar -->
     <div class="relative group mb-6">
-      <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl">
-        <img :src="profile.avatar" alt="Profile" class="w-full h-full object-cover" />
+      <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 relative">
+        <img :src="profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`" alt="Profile" class="w-full h-full object-cover transition-opacity duration-300" :class="{'group-hover:opacity-75': isOwner}" />
+        
+        <!-- Upload Overlay -->
+        <div v-if="isOwner" 
+             @click="triggerUpload"
+             class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white font-medium">
+             <Camera class="w-8 h-8 opacity-80" />
+        </div>
       </div>
+      <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="handleFileChange" />
     </div>
     
     <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-1">{{ profile.name }}</h1>
-    <p class="text-gray-500 font-medium mb-4">{{ profile.handle }}</p>
+    <p class="text-gray-500 font-medium mb-4">@{{ profile.username }}</p>
     
-    <p class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm">
+    <!-- Bio (Editable) -->
+    <p 
+        class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm outline-none px-2 rounded transition-all border border-transparent"
+        :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
+        :contenteditable="isOwner"
+        @blur="updateField('bio', $event)"
+        spellcheck="false"
+    >
       {{ profile.bio }}
     </p>
     
+    <!-- Location (Editable) -->
     <div class="flex items-center text-gray-500 text-sm font-medium mb-8">
-      <MapPin class="w-4 h-4 mr-1.5" />
-      {{ profile.location }}
+      <MapPin class="w-4 h-4 mr-1.5 flex-shrink-0" />
+      <span 
+        class="outline-none px-1 rounded transition-all border border-transparent"
+         :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
+        :contenteditable="isOwner"
+        @blur="updateField('location', $event)"
+      >
+        {{ profile.location }}
+      </span>
     </div>
     
     <div class="mt-auto w-full">
@@ -65,8 +112,8 @@ defineEmits(['login', 'logout', 'share']);
         </div>
 
         <!-- Minimalist Footer Links -->
-        <div class="flex justify-center mt-4">
-             <a href="#" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
+        <div v-if="!user" class="flex justify-center mt-4">
+             <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
                 Create your own Bento
              </a>
         </div>

@@ -19,6 +19,7 @@ create table widgets (
   icon text,
   size text default '1x1',
   position integer,
+  "bgColor" text default '#ffffff',
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
@@ -28,6 +29,18 @@ create table visits (
   source text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
+
+-- Storage (Avatars)
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);
+
+create policy "Avatar images are publicly accessible."
+  on storage.objects for select
+  using ( bucket_id = 'avatars' );
+
+create policy "Anyone can upload an avatar."
+  on storage.objects for insert
+  with check ( bucket_id = 'avatars' ); 
+  -- Note: Ideally strict RLS, but for MVP keep simple
 
 -- Enable RLS
 alter table profiles enable row level security;
