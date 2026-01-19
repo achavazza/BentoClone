@@ -11,10 +11,14 @@ const props = defineProps({
   editing: {
     type: Boolean,
     default: false
+  },
+  sorting: {
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:items', 'delete-item', 'add-item']);
+const emit = defineEmits(['update:items', 'edit-item', 'add-item']);
 
 const gridItems = computed({
   get: () => props.items,
@@ -29,19 +33,19 @@ import { computed } from 'vue';
     <draggable 
       v-model="gridItems" 
       item-key="id"
-      class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[180px]"
+      class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[160px] md:auto-rows-[180px]"
       handle=".cursor-move"
-      :disabled="!editing"
+      :disabled="!sorting"
       ghost-class="opacity-50"
-      animation="200"
+      animation="300"
     >
       <template #item="{ element }">
         <BentoItem 
+          v-if="element.type !== 'placeholder'"
           :item="element" 
           :editing="editing"
-          @delete="$emit('delete-item', $event)"
+          :sorting="sorting"
           @edit="$emit('edit-item', $event)"
-          @click="element.type === 'placeholder' ? $emit('add-item') : null"
         />
       </template>
     </draggable>

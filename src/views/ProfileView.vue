@@ -112,9 +112,9 @@ function toggleEdit() {
 
       <BentoGrid 
         :items="store.widgets" 
-        :editing="store.toggleEditMode && store.isOwner"
+        :editing="store.isOwner"
+        :sorting="store.toggleEditMode && store.isOwner"
         @update:items="store.updateWidgets"
-        @delete-item="store.deleteWidget"
         @edit-item="openEditModal"
         @add-item="openAddModal" 
       />
@@ -137,6 +137,7 @@ function toggleEdit() {
         @close="showAddModal = false" 
         @add="handleAddWidget" 
         @edit="handleEditWidget"
+        @delete="store.deleteWidget"
     />
     <ShareModal :isOpen="showShareModal" :url="currentUrl" @close="showShareModal = false" />
   </div>

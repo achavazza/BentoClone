@@ -107,14 +107,6 @@ export const useProfileStore = defineStore('profile', () => {
 
                     return { ...w, icon: iconUrl }
                 });
-                // Add placeholder if OWNER is viewing
-                if (isOwner.value) {
-                    // Actually, placeholder logic is better handled in the Grid component or added here?
-                    // Let's add it if it's missing, but we need to react to isOwner changes.
-                    // Better to just have the Grid render the placeholder button separately.
-                    // Or keep the old logic:
-                    widgets.value.push({ id: 'placeholder', type: 'placeholder', size: '1x1' })
-                }
             }
             return true
 
