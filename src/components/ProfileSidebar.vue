@@ -47,7 +47,12 @@ function updateField(field, event) {
     <!-- Avatar -->
     <div class="relative group mb-6">
       <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 relative">
-        <img :src="profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`" alt="Profile" class="w-full h-full object-cover transition-opacity duration-300" :class="{'group-hover:opacity-75': isOwner}" />
+        <img 
+          :src="profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`" 
+          alt="Profile" 
+          class="w-full h-full object-cover transition-opacity duration-300" 
+          :class="{'group-hover:opacity-75': isOwner}" 
+        />
         
         <!-- Upload Overlay -->
         <div v-if="isOwner" 

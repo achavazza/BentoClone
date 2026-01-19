@@ -54,7 +54,11 @@ watch(() => props.isOpen, (newVal) => {
     }
 });
 
-// ... (selectSocial kept same)
+function selectSocial(opt) {
+    selectedIcon.value = opt.icon;
+    title.value = opt.name;
+    bgColor.value = opt.bg;
+}
 
 function handleSubmit() {
     let widget = {
