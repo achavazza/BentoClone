@@ -21,9 +21,9 @@ const emit = defineEmits(['edit']);
 
 const sizeClasses = computed(() => {
   switch (props.item.size) {
-    case '1x2': return 'col-span-1 row-span-2 min-h-[340px] md:min-h-[380px]';
+    case '1x2': return 'col-span-1 row-span-2';
     case '2x1': return 'col-span-2 row-span-1';
-    case '2x2': return 'col-span-2 row-span-2 min-h-[340px] md:min-h-[380px]';
+    case '2x2': return 'col-span-2 row-span-2';
     default: return 'col-span-1 row-span-1';
   }
 });
@@ -35,8 +35,8 @@ const bgStyle = computed(() => {
 
 <template>
   <div 
-    class="relative group bg-white rounded-3xl border border-transparent hover:border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col cursor-pointer"
-    :class="[sizeClasses, { 'border-dashed border-2 border-gray-300 shadow-none hover:shadow-none bg-gray-50': item.type === 'placeholder' }]"
+    class="relative group bg-white rounded-3xl border border-transparent hover:border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col cursor-pointer h-full w-full"
+    :class="{ 'border-dashed border-2 border-gray-300 shadow-none hover:shadow-none bg-gray-50': item.type === 'placeholder' }"
     :style="item.type !== 'placeholder' ? bgStyle : {}"
   >
     <!-- Social/Image Link Wrapper -->
@@ -48,8 +48,8 @@ const bgStyle = computed(() => {
     ></a>
 
     <!-- Drag Handle (visible only when sorting/owner) -->
-    <div v-if="sorting && item.type !== 'placeholder'" class="absolute top-2 left-2 p-1 bg-white/80 rounded-full text-gray-400 cursor-move hover:text-gray-700 z-10">
-      <GripVertical class="w-4 h-4" />
+    <div v-if="sorting && item.type !== 'placeholder'" class="absolute top-4 left-4 text-gray-900 cursor-move hover:scale-110 active:scale-95 transition-all z-30 drop-shadow-sm">
+      <GripVertical class="w-6 h-6" />
     </div>
 
     <!-- Edit Button (Always visible for owner if editing mode is active, or just always if we follow the spirit) -->

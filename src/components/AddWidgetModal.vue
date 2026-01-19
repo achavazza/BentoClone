@@ -41,6 +41,7 @@ watch(() => props.isOpen, (newVal) => {
         textContent.value = w.content || '';
         bgColor.value = w.bgColor || '#ffffff';
         size.value = w.size || '1x1';
+        selectedIcon.value = w.icon || null;
     } else if (newVal) {
         // Reset defaults
          url.value = '';
@@ -154,17 +155,22 @@ function handleDelete() {
                         <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Box Size</label>
                         <div class="grid grid-cols-4 gap-3">
                             <button 
-                                v-for="s in ['1x1', '2x1', '1x2', '2x2']" 
-                                :key="s" 
-                                @click="size = s"
+                                v-for="s in [
+                                    { label: '1x1', val: '1x1', dots: 1, cols: 1 },
+                                    { label: '2x1', val: '2x1', dots: 2, cols: 2 },
+                                    { label: '1x2', val: '1x2', dots: 2, cols: 1 },
+                                    { label: '2x2', val: '2x2', dots: 4, cols: 2 }
+                                ]" 
+                                :key="s.val" 
+                                @click="size = s.val"
                                 class="aspect-square flex flex-col items-center justify-center gap-2 rounded-2xl border-2 transition-all"
-                                :class="size === s ? 'border-black bg-black text-white' : 'border-gray-100 text-gray-400 hover:border-gray-200'"
+                                :class="size === s.val ? 'border-black bg-black text-white' : 'border-gray-100 text-gray-400 hover:border-gray-200'"
                             >
                                 <!-- Visual Representation -->
-                                <div class="grid gap-0.5" :class="s === '1x1' ? 'grid-cols-1' : (s === '2x1' ? 'grid-cols-2' : (s === '1x2' ? 'grid-cols-1' : 'grid-cols-2'))">
-                                    <div v-for="i in (s === '1x1' ? 1 : (s === '2x2' ? 4 : 2))" :key="i" class="w-1.5 h-1.5 rounded-sm" :class="size === s ? 'bg-white' : 'bg-gray-300'"></div>
+                                <div class="grid gap-0.5" :class="s.cols === 2 ? 'grid-cols-2' : 'grid-cols-1'">
+                                    <div v-for="i in s.dots" :key="i" class="w-1.5 h-1.5 rounded-sm" :class="size === s.val ? 'bg-white' : 'bg-gray-400'"></div>
                                 </div>
-                                <span class="text-[10px] font-black">{{ s }}</span>
+                                <span class="text-[10px] font-black">{{ s.label }}</span>
                             </button>
                         </div>
                     </div>

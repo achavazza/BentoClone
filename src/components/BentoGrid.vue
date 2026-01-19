@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import BentoItem from './BentoItem.vue';
 
@@ -25,34 +25,41 @@ const gridItems = computed({
   set: (val) => emit('update:items', val)
 });
 
-import { computed } from 'vue';
+function getSpanClasses(size) {
+  switch (size) {
+    case '1x1': return 'col-span-1 row-span-1';
+    case '1x2': return 'col-span-1 row-span-2';
+    case '2x1': return 'col-span-2 row-span-1';
+    case '2x2': return 'col-span-2 row-span-2';
+    default: return 'col-span-1 row-span-1';
+  }
+}
 </script>
 
 <template>
-  <div class="h-full p-4 md:p-8 overflow-y-auto flex justify-center pb-24">
+  <div class="p-4 md:p-8 flex justify-center pb-24 h-full">
     <draggable 
       v-model="gridItems" 
       item-key="id"
-      class="grid grid-cols-[repeat(auto-fill,minmax(250px,250px))] gap-6 auto-rows-[250px] w-full max-w-[1100px] grid-auto-flow-dense"
+      class="grid grid-cols-[repeat(auto-fill,250px)] gap-6 auto-rows-[250px] w-fit max-w-full grid-auto-flow-dense mx-auto"
       handle=".cursor-move"
       :disabled="!sorting"
-      ghost-class="opacity-0"
-      animation="400"
-      tag="transition-group"
-      :component-data="{
-        tag: 'div',
-        type: 'transition-group',
-        name: 'flip-list'
-      }"
+      ghost-class="ghost"
+      :animation="400"
     >
       <template #item="{ element }">
-        <BentoItem 
+        <div 
           v-if="element.type !== 'placeholder'"
-          :item="element" 
-          :editing="editing"
-          :sorting="sorting"
-          @edit="$emit('edit-item', $event)"
-        />
+          class="h-full w-full"
+          :class="getSpanClasses(element.size)"
+        >
+          <BentoItem 
+            :item="element" 
+            :editing="editing"
+            :sorting="sorting"
+            @edit="$emit('edit-item', $event)"
+          />
+        </div>
       </template>
     </draggable>
   </div>

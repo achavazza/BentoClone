@@ -85,8 +85,8 @@ function toggleEdit() {
   </div>
 
   <div v-else class="min-h-screen flex flex-col md:flex-row bg-[#F5F5F7]">
-    <!-- Mobile Header / Sidebar on Desktop -->
-    <aside class="w-full md:w-1/3 lg:w-[350px] md:h-screen sticky top-0 bg-white/50 backdrop-blur-xl border-r border-gray-100 z-10 transition-all duration-300">
+    <!-- Sidebar on Desktop, Header on Mobile -->
+    <aside class="w-full md:w-[350px] shrink-0 bg-white border-r border-gray-100 z-10">
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"
@@ -100,8 +100,8 @@ function toggleEdit() {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 h-full md:h-screen relative overflow-hidden">
-      <!-- Edit Toggle (Only for Owner)
+    <main class="flex-1 relative bg-transparent overflow-y-auto">
+      <!-- Edit Toggle (Only for Owner) -->
       <div v-if="store.isOwner" class="absolute top-4 right-4 z-50 flex gap-2">
         <button 
           @click="toggleEdit"
@@ -111,7 +111,7 @@ function toggleEdit() {
           <Check v-if="store.toggleEditMode" class="w-5 h-5" />
           <Edit2 v-else class="w-5 h-5" />
         </button>
-      </div> -->
+      </div> 
 
       <BentoGrid 
         :items="store.widgets" 

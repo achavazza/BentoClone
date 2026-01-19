@@ -46,18 +46,24 @@ export const useProfileStore = defineStore('profile', () => {
 
     // Ensure profile exists in DB on login
     async function checkAndCreateProfile(authUser) {
-        const { data } = await supabase.from('profiles').select('id').eq('id', authUser.id).single()
-        if (!data) {
+        const { data: existingProfile } = await supabase.from('profiles').select('*').eq('id', authUser.id).single()
+
+        const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
+
+        if (!existingProfile) {
             // Create profile
             const username = authUser.email.split('@')[0] + Math.floor(Math.random() * 1000);
             await supabase.from('profiles').insert({
                 id: authUser.id,
                 username: username,
                 full_name: authUser.user_metadata.full_name || 'Creator',
-                avatar_url: authUser.user_metadata.avatar_url,
+                avatar_url: googleAvatar,
                 bio: 'Welcome to my Bento!',
                 location: 'Earth'
             })
+        } else if (!existingProfile.avatar_url && googleAvatar) {
+            // Sync Google avatar to existing profile if it doesn't have one
+            await updateProfile({ avatar_url: googleAvatar })
         }
     }
 

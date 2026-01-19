@@ -92,8 +92,14 @@ function updateField(field, event) {
     </div>
     
     <div class="mt-auto w-full">
+       <!-- Minimalist Footer Links -->
+        <div v-if="!user" class="flex justify-center mb-4">
+             <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
+                Create your own Bento
+             </a>
+        </div>
         <!-- Main Actions -->
-        <div class="flex gap-2 mb-6">
+        <div class="flex gap-2">
              <button @click="$emit('share')" class="flex-1 flex items-center justify-center px-6 py-3 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-transform active:scale-95 shadow-lg">
                 <Share2 class="w-4 h-4 mr-2" />
                 Share
@@ -116,12 +122,7 @@ function updateField(field, event) {
             </button>
         </div>
 
-        <!-- Minimalist Footer Links -->
-        <div v-if="!user" class="flex justify-center mt-4">
-             <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
-                Create your own Bento
-             </a>
-        </div>
+       
     </div>
   </div>
 </template>
