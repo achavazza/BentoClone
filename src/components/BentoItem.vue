@@ -68,9 +68,8 @@ const socialHandle = computed(() => {
     </div>
 
     <!-- Edit Button (Always visible for owner if editing mode is active, or just always if we follow the spirit) -->
-    <!-- The user said: "los iconos que solo aparecen al editar, deberian estar siempre" -->
     <button 
-      v-if="editing && item.type !== 'placeholder'" 
+      v-if="sorting && item.type !== 'placeholder'" 
       @click.stop="$emit('edit', item)" 
       class="absolute top-4 right-4 p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors z-10 opacity-100"
     >
