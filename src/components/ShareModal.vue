@@ -1,5 +1,5 @@
 <script setup>
-import { Copy, Check, X, QrCode } from 'lucide-vue-next';
+import { Copy, Check, X, QrCode, AtSign } from 'lucide-vue-next';
 import { ref } from 'vue';
 import QrcodeVue from 'qrcode.vue';
 import { socialIcons } from '../lib/icons';
@@ -63,19 +63,19 @@ function copyLink() {
       <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 text-center">Share via</h4>
       <div class="grid grid-cols-4 gap-2">
          <a :href="`https://twitter.com/intent/tweet?text=Check%20out%20my%20Bento%20profile!&url=${encodeURIComponent(url)}`" target="_blank" class="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-            <i :class="[socialIcons['Twitter (X)'], 'text-2xl mb-1']"></i>
+            <i :class="[socialIcons['Twitter (X)'], 'text-2xl mb-2']"></i>
             <span class="text-[10px] font-medium">Twitter / X</span>
          </a>
          <a :href="`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`" target="_blank" class="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-            <i :class="[socialIcons['LinkedIn'], 'text-2xl mb-1']"></i>
+            <i :class="[socialIcons['LinkedIn'], 'text-2xl mb-2']"></i>
             <span class="text-[10px] font-medium">LinkedIn</span>
          </a>
          <a :href="`https://wa.me/?text=Check%20out%20my%20Bento%20only!%20${encodeURIComponent(url)}`" target="_blank" class="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-            <i :class="[socialIcons['WhatsApp'], 'text-2xl mb-1']"></i>
+            <i :class="[socialIcons['WhatsApp'], 'text-2xl mb-2']"></i>
             <span class="text-[10px] font-medium">WhatsApp</span>
          </a>
          <a :href="`mailto:?subject=Check%20out%20my%20Bento&body=${encodeURIComponent(url)}`" target="_blank" class="flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-             <i class="ci ci-mail ci-2x text-2xl mb-1"></i>
+             <at-sign class="w-8 h-8 text-gray-700 mb-2" />
              <span class="text-[10px] font-medium">Email</span>
          </a>
       </div>
