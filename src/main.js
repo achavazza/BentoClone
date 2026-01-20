@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { vAutoAnimate } from '@formkit/auto-animate'
 
 import './assets/base.css'
 
@@ -10,5 +11,5 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-
+app.directive('auto-animate', vAutoAnimate)
 app.mount('#app')

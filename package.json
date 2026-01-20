@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.9.0",
     "@supabase/supabase-js": "^2.90.1",
     "lucide-vue-next": "^0.562.0",
     "pinia": "^3.0.4",

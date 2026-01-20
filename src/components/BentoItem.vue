@@ -35,7 +35,7 @@ const bgStyle = computed(() => {
 
 <template>
   <div 
-    class="relative group bg-white rounded-3xl border border-transparent hover:border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col cursor-pointer h-full w-full"
+    class="relative group bg-white rounded-4xl border border-black/5 hover:border-black/10 shadow-sm hover:shadow-none active:scale-95 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer h-full w-full"
     :class="{ 'border-dashed border-2 border-gray-300 shadow-none hover:shadow-none bg-gray-50': item.type === 'placeholder' }"
     :style="item.type !== 'placeholder' ? bgStyle : {}"
   >

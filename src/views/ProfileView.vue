@@ -84,9 +84,9 @@ function toggleEdit() {
       </div>
   </div>
 
-  <div v-else class="min-h-screen flex flex-col md:flex-row bg-[#F5F5F7]">
+  <div v-else class="min-h-screen flex flex-col md:flex-row bg-white">
     <!-- Sidebar on Desktop, Header on Mobile -->
-    <aside class="w-full md:w-[350px] shrink-0 bg-white border-r border-gray-100 z-10">
+    <aside class="w-full md:w-[350px] shrink-0 bg-white z-10">
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"

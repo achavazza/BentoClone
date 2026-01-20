@@ -43,10 +43,10 @@ function updateField(field, event) {
 </script>
 
 <template>
-  <div class="h-full flex flex-col items-center text-center p-8 sticky top-0 overflow-y-auto">
+  <div class="h-full flex flex-col items-center md:items-start p-8 sticky top-0 overflow-y-auto">
     <!-- Avatar -->
     <div class="relative group mb-6">
-      <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 relative">
+      <div class="w-48 h-48 rounded-full overflow-hidden bg-gray-100 relative">
         <img 
           :src="profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`" 
           alt="Profile" 
@@ -65,7 +65,7 @@ function updateField(field, event) {
     </div>
     
     <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-1">{{ profile.name }}</h1>
-    <p class="text-gray-500 font-medium mb-4 flex items-center justify-center gap-2">
+    <p class="text-gray-500 font-medium mb-4 flex items-start gap-2">
       @{{ profile.username }}
       <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
         <Settings class="w-3.5 h-3.5" />
@@ -74,7 +74,7 @@ function updateField(field, event) {
     
     <!-- Bio (Editable) -->
     <p 
-        class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm outline-none px-2 rounded transition-all border border-transparent"
+        class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm outline-none rounded transition-all border border-transparent"
         :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
         :contenteditable="isOwner"
         @blur="updateField('bio', $event)"
@@ -84,7 +84,7 @@ function updateField(field, event) {
     </p>
     
     <!-- Location (Editable) -->
-    <div class="flex items-center text-gray-500 text-sm font-medium mb-8">
+    <div class="flex items-left text-gray-500 text-sm font-medium mb-8">
       <MapPin class="w-4 h-4 mr-1.5 flex-shrink-0" />
       <span 
         class="outline-none px-1 rounded transition-all border border-transparent"
@@ -96,24 +96,20 @@ function updateField(field, event) {
       </span>
     </div>
     
-    <div class="mt-auto w-full">
+    <div class="mt-auto w-full fixed bottom-0 py-4 md:py-0 bg-white md:static md:bottom-auto md:bg-transparent">
        <!-- Minimalist Footer Links -->
-        <div v-if="!user" class="flex justify-center mb-4">
-             <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
-                Create your own Bento
-             </a>
-        </div>
+        
         <!-- Main Actions -->
-        <div class="flex gap-2">
-             <button @click="$emit('share')" class="flex-1 flex items-center justify-center px-6 py-3 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-transform active:scale-95 shadow-lg">
+        <div class="flex gap-2 justify-center">
+            <button @click="$emit('share')" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
                 <Share2 class="w-4 h-4 mr-2" />
                 Share
             </button>
-             
+            <div class="mx-2 border-l border-gray-200"></div>
             <button 
               v-if="!user"
               @click="$emit('login')"
-              class="px-6 py-3 bg-white text-black border border-gray-200 rounded-full font-bold hover:bg-gray-50 transition-colors"
+              class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1"
             >
               Log in
             </button>
@@ -121,10 +117,17 @@ function updateField(field, event) {
             <button 
               v-else
               @click="$emit('logout')"
-              class="px-6 py-3 bg-gray-100 text-red-500 rounded-full font-bold hover:bg-red-50 transition-colors"
+              class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1"
             >
               Log out
             </button>
+            
+            <div class="mx-2 border-l border-gray-200"></div>
+            <div v-if="!user" class="">
+                <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
+                    Create your own
+                </a>
+            </div>
         </div>
 
        

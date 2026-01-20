@@ -37,15 +37,16 @@ function getSpanClasses(size) {
 </script>
 
 <template>
-  <div class="p-4 md:p-8 flex justify-center pb-24 h-full">
+  <div class="p-4 md:p-8 flex justify-center md:justify-end pb-24 h-full">
     <draggable 
       v-model="gridItems" 
       item-key="id"
-      class="grid grid-cols-[repeat(auto-fill,250px)] gap-6 auto-rows-[250px] w-fit max-w-full grid-auto-flow-dense mx-auto"
+      class="grid grid-cols-[repeat(auto-fill,250px)] gap-6 auto-rows-[250px] w-fit max-w-full grid-auto-flow-dense"
       handle=".cursor-move"
       :disabled="!sorting"
       ghost-class="ghost"
       :animation="400"
+      v-auto-animate
     >
       <template #item="{ element }">
         <div 
