@@ -13,7 +13,8 @@ export const socialIcons = {
     'Discord': 'ci ci-discord ci-2x',
     'Reddit': 'ci ci-reddit ci-2x',
     'Threads': 'ci ci-threads ci-2x', // Might not exist in this library version
-    'Twitch': 'ci ci-twitch ci-2x'
+    'Twitch': 'ci ci-twitch ci-2x',
+    'Behance': 'ci ci-behance ci-2x'
 }
 
 export function getSocialIconClass(name) {

@@ -26,6 +26,7 @@ const socialOptions = [
   { name: 'Twitter (X)', icon: socialIcons['Twitter (X)'], bg: '#F3F4F6' },
   { name: 'TikTok', icon: socialIcons['TikTok'], bg: '#F3F4F6' },
   { name: 'Vimeo', icon: socialIcons['Vimeo'], bg: '#E0F2FE' },
+  { name: 'Behance', icon: socialIcons['Behance'], bg: '#E0F2FE' },
 ];
 
 const size = ref('1x1');

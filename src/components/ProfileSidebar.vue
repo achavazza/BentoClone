@@ -7,11 +7,11 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      name: 'User Name',
-      handle: '@username',
+      full_name: 'User Name',
+      username: 'username',
       bio: 'Digital Creator & Developer.',
       location: 'San Francisco, CA',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
       id: null
     })
   },
@@ -64,7 +64,15 @@ function updateField(field, event) {
       <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="handleFileChange" />
     </div>
     
-    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-1">{{ profile.name }}</h1>
+    <h1 
+        class="text-3xl font-bold tracking-tight text-gray-900 mb-1 outline-none rounded transition-all border border-transparent"
+        :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
+        :contenteditable="isOwner"
+        @blur="updateField('full_name', $event)"
+        spellcheck="false"
+    >
+      {{ profile.full_name || 'Your Name' }}
+    </h1>
     <p class="text-gray-500 font-medium mb-4 flex items-start gap-2">
       @{{ profile.username }}
       <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
@@ -100,7 +108,7 @@ function updateField(field, event) {
        <!-- Minimalist Footer Links -->
         
         <!-- Main Actions -->
-        <div class="flex gap-2 justify-center">
+        <div class="flex gap-2 justify-center md:justify-start">
             <button @click="$emit('share')" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
                 <Share2 class="w-4 h-4 mr-2" />
                 Share
@@ -125,7 +133,7 @@ function updateField(field, event) {
             <div class="mx-2 border-l border-gray-200"></div>
             <div v-if="!user" class="">
                 <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
-                    Create your own
+                    Claim your own
                 </a>
             </div>
         </div>
