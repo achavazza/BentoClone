@@ -63,7 +63,8 @@ const socialHandle = computed(() => {
     ></a>
 
     <!-- Drag Handle (visible only when sorting/owner) -->
-    <div v-if="sorting && item.type !== 'placeholder'" class="absolute top-4 left-4 text-gray-400 cursor-move transition-all z-30 drop-shadow-sm">
+    <div v-if="sorting && item.type !== 'placeholder'" 
+    class="absolute top-4 left-4 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50  transition-colors cursor-move z-10">
       <GripVertical class="w-4 h-4" />
     </div>
 
@@ -71,7 +72,7 @@ const socialHandle = computed(() => {
     <button 
       v-if="sorting && item.type !== 'placeholder'" 
       @click.stop="$emit('edit', item)" 
-      class="absolute top-4 right-4 p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors z-10 opacity-100"
+      class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50  transition-colors z-10"
     >
       <Pencil class="w-4 h-4" />
     </button>
