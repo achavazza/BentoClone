@@ -14,7 +14,8 @@ export const socialIcons = {
     'Reddit': 'ci ci-reddit ci-2x',
     'Threads': 'ci ci-threads ci-2x', // Might not exist in this library version
     'Twitch': 'ci ci-twitch ci-2x',
-    'Behance': 'ci ci-behance ci-2x'
+    'Behance': 'ci ci-behance ci-2x',
+    'WhatsApp': 'ci ci-whatsapp ci-2x'
 }
 
 export function getSocialIconClass(name) {
