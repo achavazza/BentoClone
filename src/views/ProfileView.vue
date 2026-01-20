@@ -77,14 +77,14 @@ function toggleEdit() {
 </script>
 
 <template>
-  <div v-if="store.isLoading || !store.profile" class="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
+  <div v-if="store.isLoading || !store.profile" class="min-h-screen flex items-center justify-center bg-white">
       <div class="flex flex-col items-center gap-4">
           <Loader2 class="w-8 h-8 animate-spin text-gray-400" />
           <p class="text-gray-400 font-medium tracking-tight">Loading Bento...</p>
       </div>
   </div>
 
-  <div v-else class="min-h-screen flex flex-col md:flex-row bg-white">
+  <div v-else class="min-h-screen flex flex-col md:flex-row bg-white w-full mx-auto sm:max-w-[428px] md:max-w-[1728px]">
     <!-- Sidebar on Desktop, Header on Mobile -->
     <aside class="w-full md:w-[350px] shrink-0 bg-white z-10">
       <ProfileSidebar 

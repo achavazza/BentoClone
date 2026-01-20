@@ -63,7 +63,7 @@ async function handleEmailAuth() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F7] p-4 text-center">
+  <div class="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
     <div class="max-w-md w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
         <h1 class="text-6xl font-black mb-2 tracking-tighter">bento<span class="text-gray-400">.clone</span></h1>
         <p class="text-xl text-gray-500 mb-8 font-medium">Link in bio, but rich.</p>

@@ -46,7 +46,7 @@ function updateField(field, event) {
   <div class="h-full flex flex-col items-center md:items-start p-8 sticky top-0 overflow-y-auto">
     <!-- Avatar -->
     <div class="relative group mb-6">
-      <div class="w-48 h-48 rounded-full overflow-hidden bg-gray-100 relative">
+      <div class="w-48 h-48 rounded-full overflow-hidden bg-gray-100 relative border-1 border-gray-100/50">
         <img 
           :src="profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`" 
           alt="Profile" 
