@@ -351,14 +351,23 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function fetchTotalVisits(profileId) {
-        const { count, error } = await supabase
+        // 1. Get historical sum from daily_stats
+        const { data: historical, error: hError } = await supabase
+            .from('daily_stats')
+            .select('visit_count')
+            .eq('profile_id', profileId)
+
+        const historicalCount = historical?.reduce((sum, row) => sum + (row.visit_count || 0), 0) || 0
+
+        // 2. Get current raw logs from analytics (those not yet rolled up today)
+        const { count: currentCount, error: cError } = await supabase
             .from('analytics')
             .select('*', { count: 'exact', head: true })
             .eq('profile_id', profileId)
             .eq('event_type', 'visit')
+            .gte('created_at', new Date().toISOString().split('T')[0]) // Only today's
 
-        if (error) return 0
-        return count || 0
+        return historicalCount + (currentCount || 0)
     }
 
     async function fetchAnalyticsData(profileId) {
@@ -383,9 +392,14 @@ export const useProfileStore = defineStore('profile', () => {
         }
 
         data.forEach(e => {
-            if (e.browser) stats.browsers[e.browser] = (stats.browsers[e.browser] || 0) + 1
-            if (e.os) stats.os[e.os] = (stats.os[e.os] || 0) + 1
-            if (e.referrer) stats.referrers[e.referrer] = (stats.referrers[e.referrer] || 0) + 1
+            const browserName = e.browser || 'Unknown'
+            const osName = e.os || 'Unknown'
+            const referrerName = e.referrer || 'Direct'
+
+            stats.browsers[browserName] = (stats.browsers[browserName] || 0) + 1
+            stats.os[osName] = (stats.os[osName] || 0) + 1
+            stats.referrers[referrerName] = (stats.referrers[referrerName] || 0) + 1
+
             if (e.event_type === 'click' && e.widget_id) {
                 stats.clicksByWidget[e.widget_id] = (stats.clicksByWidget[e.widget_id] || 0) + 1
             }
