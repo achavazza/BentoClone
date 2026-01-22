@@ -261,9 +261,15 @@ export const useProfileStore = defineStore('profile', () => {
     async function uploadWidgetImage(file) {
         if (!user.value) return null
 
-        // 1MB Limit
-        if (file.size > 1 * 1024 * 1024) {
-            throw new Error('Image too large (max 1MB)')
+        // 2MB Limit matches Supabase policy
+        if (file.size > 2 * 1024 * 1024) {
+            throw new Error('Image too large (max 2MB)')
+        }
+
+        // Allowed Types
+        const allowedTypes = ['image/jpeg', 'image/png']
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('Invalid file type. Only JPG and PNG allowed.')
         }
 
         const fileExt = file.name.split('.').pop()
@@ -290,6 +296,17 @@ export const useProfileStore = defineStore('profile', () => {
 
     async function uploadAvatar(file) {
         if (!user.value) return
+
+        // 2MB Limit matches Supabase policy
+        if (file.size > 2 * 1024 * 1024) {
+            throw new Error('Image too large (max 2MB)')
+        }
+
+        // Allowed Types
+        const allowedTypes = ['image/jpeg', 'image/png']
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('Invalid file type. Only JPG and PNG allowed.')
+        }
 
         const fileExt = file.name.split('.').pop()
         const filePath = `${user.value.id}/avatar/current.${fileExt}`

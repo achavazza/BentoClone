@@ -181,7 +181,7 @@ function handleDelete() {
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <label class="cursor-pointer bg-white text-black px-4 py-2 rounded-xl font-bold text-sm">
                                 Change Image
-                                <input type="file" @change="handleFileUpload" accept="image/*" class="hidden" />
+                                <input type="file" @change="handleFileUpload" accept="image/jpeg,image/png" class="hidden" />
                             </label>
                         </div>
                     </div>
@@ -196,10 +196,10 @@ function handleDelete() {
                             </div>
                             <div class="text-center">
                                 <span class="block text-sm font-bold text-gray-900">Upload Image</span>
-                                <span class="block text-xs text-gray-400">Max size 1MB</span>
+                                <span class="block text-xs text-gray-400">JPG/PNG, Max 2MB</span>
                             </div>
                         </template>
-                        <input type="file" @change="handleFileUpload" accept="image/*" class="hidden" :disabled="isUploading" />
+                        <input type="file" @change="handleFileUpload" accept="image/jpeg,image/png" class="hidden" :disabled="isUploading" />
                     </label>
 
                     <div v-if="uploadError" class="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-xl">

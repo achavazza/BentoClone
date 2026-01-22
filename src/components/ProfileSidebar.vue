@@ -65,7 +65,7 @@ function updateField(field, event) {
              <Camera class="w-8 h-8 opacity-80" />
         </div>
       </div>
-      <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="handleFileChange" />
+      <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png" @change="handleFileChange" />
     </div>
     
     <h1 
