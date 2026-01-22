@@ -83,7 +83,10 @@ const socialHandle = computed(() => {
       
         <!-- Content Rendering -->
         <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
-          <i v-if="item.icon" :class="[item.icon, 'text-4xl']"></i>
+          <template v-if="item.icon">
+            <img v-if="item.icon.startsWith('http')" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" />
+            <i v-else :class="[item.icon, 'text-4xl']"></i>
+          </template>
           <div class="flex flex-col">
             <span class="font-semibold text-gray-900 leading-tight mb-1">{{ item.title }}</span>
             <span v-if="socialHandle" class="text-xs text-gray-400 font-medium">{{ socialHandle }}</span>

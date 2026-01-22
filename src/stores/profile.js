@@ -96,23 +96,7 @@ export const useProfileStore = defineStore('profile', () => {
                 .order('position', { ascending: true })
 
             if (widgetsData) {
-                widgets.value = widgetsData.map(w => {
-                    // Start with specific icon if saved, else derive from Title
-                    // For now, simpler: derive from Title mapping
-                    // We need to match title to keys in socialIcons
-                    let iconUrl = null
-
-                    // Try exact match
-                    if (socialIcons[w.title]) {
-                        iconUrl = socialIcons[w.title]
-                    } else {
-                        // Try partial match
-                        const key = Object.keys(socialIcons).find(k => w.title && w.title.includes(k))
-                        if (key) iconUrl = socialIcons[key]
-                    }
-
-                    return { ...w, icon: iconUrl }
-                });
+                widgets.value = widgetsData.map(w => ({ ...w, icon: getWidgetIcon(w) }));
             }
             return true
 
@@ -158,9 +142,11 @@ export const useProfileStore = defineStore('profile', () => {
 
         // Optimistic
         const tempId = Date.now()
+        const widgetWithIcon = { ...newWidget, id: tempId, icon: getWidgetIcon(newWidget) }
+
         // Insert before placeholder (last item)
         const lastIdx = widgets.value.length - 1
-        widgets.value.splice(lastIdx, 0, { ...newWidget, id: tempId })
+        widgets.value.splice(lastIdx, 0, widgetWithIcon)
 
         // Save
         const { icon, ...dbWidget } = newWidget
@@ -181,7 +167,8 @@ export const useProfileStore = defineStore('profile', () => {
 
         const index = widgets.value.findIndex(w => w.id === updatedWidget.id);
         if (index !== -1) {
-            widgets.value[index] = { ...widgets.value[index], ...updatedWidget };
+            const merged = { ...widgets.value[index], ...updatedWidget };
+            widgets.value[index] = { ...merged, icon: getWidgetIcon(merged) };
 
             if (typeof updatedWidget.id === 'number') {
                 const { icon, ...dbWidget } = widgets.value[index];
@@ -440,6 +427,33 @@ export const useProfileStore = defineStore('profile', () => {
         })
 
         return stats
+    }
+
+    function getWidgetIcon(w) {
+        if (w.type !== 'social' && w.type !== 'image') return null;
+
+        // 1. Check if it's a known social icon (by title or content)
+        // Try title first
+        if (socialIcons[w.title]) return socialIcons[w.title];
+
+        // Try content (URL)
+        const knownSocialKey = Object.keys(socialIcons).find(k => {
+            const domain = k.toLowerCase().replace(' (x)', '');
+            return w.content?.toLowerCase().includes(domain);
+        });
+        if (knownSocialKey) return socialIcons[knownSocialKey];
+
+        // 2. If it's a generic link, fetch favicon
+        if (w.content && w.content.startsWith('http')) {
+            try {
+                const url = new URL(w.content);
+                return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     return {
