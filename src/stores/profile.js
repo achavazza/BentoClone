@@ -267,8 +267,8 @@ export const useProfileStore = defineStore('profile', () => {
         }
 
         const fileExt = file.name.split('.').pop()
-        const fileName = `${user.value.id}-${Date.now()}.${fileExt}`
-        const filePath = `${fileName}`
+        const fileName = `${Date.now()}.${fileExt}`
+        const filePath = `${user.value.id}/${fileName}`
 
         // Upload to Storage
         const { error: uploadError } = await supabase.storage
@@ -292,8 +292,7 @@ export const useProfileStore = defineStore('profile', () => {
         if (!user.value) return
 
         const fileExt = file.name.split('.').pop()
-        const fileName = `${user.value.id}.${fileExt}`
-        const filePath = `${fileName}`
+        const filePath = `${user.value.id}/avatar.${fileExt}`
 
         // Upload to Storage
         const { error: uploadError } = await supabase.storage

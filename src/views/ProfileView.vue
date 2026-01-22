@@ -177,7 +177,7 @@ function toggleEdit() {
 
       <!-- Floating Add Button (Only for Owner) -->
       
-       <div v-if="store.isOwner" class="fixed bottom-8 right-8 z-50 z-50 flex gap-2">
+       <div v-if="store.isOwner" class="fixed bottom-20 md:bottom-8 right-8 z-50 z-50 flex gap-2">
         <button 
           @click="toggleEdit"
           class="p-4 rounded-full shadow-2xl transition-all border border-gray-100/50"
