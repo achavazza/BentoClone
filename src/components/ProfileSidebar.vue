@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { MapPin, Share2, Camera, Settings } from 'lucide-vue-next';
+import { MapPin, Users, Share2, Camera, Settings } from 'lucide-vue-next';
 
 const props = defineProps({
   profile: {
@@ -80,7 +80,7 @@ function updateField(field, event) {
     <p class="text-gray-500 font-medium mb-4 flex items-start gap-2">
       @{{ profile.username }}
       <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
-        <Settings class="w-3.5 h-3.5" />
+        <Settings class="w-4 h-4" />
       </button>
     </p>
     
@@ -116,9 +116,9 @@ function updateField(field, event) {
             <button 
                 v-if="isOwner" 
                 @click="$emit('open-analytics')" 
-                class="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-all flex items-center gap-1.5 border border-blue-200/50"
+                class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
             >
-                <Users class="w-3 h-3" />
+                <Users class="w-4 h-4 mr-2" />
                 {{ visitorCount }} visitors
             </button>
             <div v-if="isOwner" class="mx-1 border-l border-gray-200 h-4 self-center"></div>
