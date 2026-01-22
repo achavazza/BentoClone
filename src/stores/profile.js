@@ -367,8 +367,9 @@ export const useProfileStore = defineStore('profile', () => {
             }
         })
 
-        // Use hard reload to root to ensure all listeners and states are fully purged
-        window.location.href = window.location.origin
+        // Use hard reload to ensure all listeners and states are fully purged
+        // Stay on the current page after logout
+        window.location.reload()
     }
 
     async function fetchTotalVisits(profileId) {
