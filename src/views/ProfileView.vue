@@ -9,6 +9,7 @@ import ShareModal from '../components/ShareModal.vue'
 import SettingsModal from '../components/SettingsModal.vue'
 import TextDetailModal from '../components/TextDetailModal.vue'
 import AnalyticsModal from '../components/AnalyticsModal.vue'
+import AuthModal from '../components/AuthModal.vue'
 import { Edit2, Check, Plus, Loader2, Users } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { trackEvent } from '../utils/analytics'
@@ -20,6 +21,7 @@ const showShareModal = ref(false)
 const showSettingsModal = ref(false)
 const showTextModal = ref(false)
 const showAnalyticsModal = ref(false)
+const showAuthModal = ref(false)
 const isEditingWidget = ref(false)
 const widgetToEdit = ref(null)
 const selectedTextWidget = ref(null)
@@ -148,7 +150,7 @@ function toggleEdit() {
         :profile="store.profile" 
         :user="store.user"
         :visitorCount="totalVisitors"
-        @login="store.signInWithGoogle"
+        @login="showAuthModal = true"
         @logout="store.signOut"
         @share="showShareModal = true"
         @open-settings="showSettingsModal = true"
@@ -222,5 +224,6 @@ function toggleEdit() {
         :stats="analyticsStats"
         @close="showAnalyticsModal = false"
     />
+    <AuthModal :isOpen="showAuthModal" @close="showAuthModal = false" />
   </div>
 </template>

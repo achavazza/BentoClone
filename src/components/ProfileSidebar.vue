@@ -77,9 +77,9 @@ function updateField(field, event) {
     >
       {{ profile.full_name || 'Your Name' }}
     </h1>
-    <p class="text-gray-500 font-medium mb-4 flex items-start gap-2">
+    <p class="text-gray-500 font-medium mb-4 flex  items-center gap-2">
       @{{ profile.username }}
-      <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 -mt-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
+      <button v-if="isOwner" @click="$emit('open-settings')" class="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
         <Settings class="w-4 h-4" />
       </button>
     </p>
@@ -96,8 +96,10 @@ function updateField(field, event) {
     </p>
     
     <!-- Location (Editable) -->
-    <div class="flex items-left text-gray-500 text-sm font-medium mb-8">
-      <MapPin class="w-4 h-4 mr-1.5 flex-shrink-0" />
+    <div class="flex items-center  text-gray-500 text-sm font-medium mb-8">
+      <div class="p-1  hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
+        <MapPin class="w-4 h-4 flex-shrink-0" />
+      </div>
       <span 
         class="outline-none px-1 rounded transition-all border border-transparent"
          :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
