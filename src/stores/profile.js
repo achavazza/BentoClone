@@ -263,13 +263,13 @@ export const useProfileStore = defineStore('profile', () => {
 
         // 2MB Limit matches Supabase policy
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('Image too large (max 2MB)')
+            throw new Error('La imagen es demasiado grande (máximo 2MB)')
         }
 
         // Allowed Types
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Invalid file type. Only JPG and PNG allowed.')
+            throw new Error('Formato no válido. Solo se permiten JPG y PNG.')
         }
 
         const fileExt = file.name.split('.').pop()
@@ -299,13 +299,13 @@ export const useProfileStore = defineStore('profile', () => {
 
         // 2MB Limit matches Supabase policy
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('Image too large (max 2MB)')
+            throw new Error('La imagen es demasiado grande (máximo 2MB)')
         }
 
         // Allowed Types
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Invalid file type. Only JPG and PNG allowed.')
+            throw new Error('Formato no válido. Solo se permiten JPG y PNG.')
         }
 
         const fileExt = file.name.split('.').pop()
