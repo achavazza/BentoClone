@@ -1,7 +1,8 @@
 <script setup>
 import { ref, watch } from 'vue';
-import { X } from 'lucide-vue-next';
+import { X, Upload, Loader2, AlertCircle } from 'lucide-vue-next';
 import { socialIcons } from '../lib/icons';
+import { useProfileStore } from '../stores/profile';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -9,14 +10,17 @@ const props = defineProps({
   existingWidget: Object
 });
 
-const emit = defineEmits(['close', 'add', 'edit']);
+const emit = defineEmits(['close', 'add', 'edit', 'delete']);
 
+const store = useProfileStore();
 const activeTab = ref('social');
 const url = ref('');
 const title = ref('');
 const textContent = ref('');
 const selectedIcon = ref(null);
 const bgColor = ref('#ffffff');
+const isUploading = ref(false);
+const uploadError = ref('');
 
 const socialOptions = [
   { name: 'Instagram', icon: socialIcons['Instagram'], bg: '#FCE7F3' },
@@ -43,6 +47,7 @@ watch(() => props.isOpen, (newVal) => {
         bgColor.value = w.bgColor || '#ffffff';
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
+        uploadError.value = '';
     } else if (newVal) {
         // Reset defaults
          url.value = '';
@@ -52,6 +57,7 @@ watch(() => props.isOpen, (newVal) => {
          bgColor.value = '#ffffff';
          activeTab.value = 'social';
          size.value = '1x1';
+         uploadError.value = '';
     }
 });
 
@@ -61,7 +67,30 @@ function selectSocial(opt) {
     bgColor.value = opt.bg;
 }
 
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    isUploading.value = true;
+    uploadError.value = '';
+    
+    try {
+        const publicUrl = await store.uploadWidgetImage(file);
+        if (publicUrl) {
+            url.value = publicUrl;
+        } else {
+            uploadError.value = 'Failed to upload image. Please try again.';
+        }
+    } catch (e) {
+        uploadError.value = e.message || 'Failed to upload image.';
+    } finally {
+        isUploading.value = false;
+    }
+}
+
 function handleSubmit() {
+    if (isUploading.value) return;
+
     let widget = {
         type: activeTab.value,
         bgColor: bgColor.value,
@@ -73,8 +102,10 @@ function handleSubmit() {
         widget.content = url.value;
         widget.icon = selectedIcon.value;
     } else if (activeTab.value === 'text') {
+        widget.title = title.value;
         widget.content = textContent.value;
     } else if (activeTab.value === 'image') {
+        widget.title = title.value;
         widget.content = url.value;
     }
 
@@ -144,8 +175,48 @@ function handleDelete() {
                 <div v-if="activeTab === 'text'">
                     <textarea v-model="textContent" rows="4" placeholder="Write something..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none resize-none font-medium"></textarea>
                 </div>
+                <div v-else-if="activeTab === 'image'" class="space-y-4">
+                    <div v-if="url" class="relative rounded-2xl overflow-hidden aspect-video bg-gray-100 group">
+                        <img :src="url" class="w-full h-full object-cover" />
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <label class="cursor-pointer bg-white text-black px-4 py-2 rounded-xl font-bold text-sm">
+                                Change Image
+                                <input type="file" @change="handleFileUpload" accept="image/*" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+                    <label v-else class="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-gray-200 rounded-2xl hover:border-black/20 transition-colors cursor-pointer">
+                        <div v-if="isUploading" class="flex flex-col items-center gap-2">
+                            <Loader2 class="w-8 h-8 animate-spin text-gray-400" />
+                            <span class="text-xs font-bold text-gray-400">Uploading...</span>
+                        </div>
+                        <template v-else>
+                            <div class="p-3 bg-gray-50 rounded-full">
+                                <Upload class="w-6 h-6 text-gray-400" />
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-sm font-bold text-gray-900">Upload Image</span>
+                                <span class="block text-xs text-gray-400">Max size 1MB</span>
+                            </div>
+                        </template>
+                        <input type="file" @change="handleFileUpload" accept="image/*" class="hidden" :disabled="isUploading" />
+                    </label>
+
+                    <div v-if="uploadError" class="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-xl">
+                        <AlertCircle class="w-4 h-4 shrink-0" />
+                        <span class="text-xs font-bold">{{ uploadError }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                        <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">or</span>
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                    </div>
+
+                    <input v-model="url" type="url" placeholder="Paste image URL..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
+                </div>
                 <div v-else>
-                    <input v-model="url" type="url" :placeholder="activeTab === 'image' ? 'Image URL...' : 'Link URL...'" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
+                    <input v-model="url" type="url" placeholder="Link URL..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
                 </div>
 
                 <!-- Extended Details -->
@@ -194,8 +265,12 @@ function handleDelete() {
             </div>
 
             <div class="flex flex-col gap-3 pt-4 pb-2">
-                <button @click="handleSubmit" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10">
-                    {{ editMode ? 'Save Changes' : 'Add Widget' }}
+                <button @click="handleSubmit" :disabled="isUploading" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span v-if="isUploading" class="flex items-center justify-center gap-2">
+                        <Loader2 class="w-5 h-5 animate-spin" />
+                        Uploading...
+                    </span>
+                    <span v-else>{{ editMode ? 'Save Changes' : 'Add Widget' }}</span>
                 </button>
                 
                 <button 

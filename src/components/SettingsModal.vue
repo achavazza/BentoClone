@@ -81,7 +81,7 @@ async function handleSave() {
 
       <div class="p-8">
         <div v-if="!showConfirm">
-            <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Change your handle</label>
+            <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Change your handle</label>
             
             <div class="relative">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">bento.me/</div>

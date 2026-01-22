@@ -18,7 +18,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:items', 'edit-item', 'add-item']);
+const emit = defineEmits(['update:items', 'edit-item', 'add-item', 'click-item']);
 
 const gridItems = computed({
   get: () => props.items,
@@ -59,6 +59,7 @@ function getSpanClasses(size) {
             :editing="editing"
             :sorting="sorting"
             @edit="$emit('edit-item', $event)"
+            @click="$emit('click-item', $event)"
           />
         </div>
       </template>

@@ -17,7 +17,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['edit']);
+const emit = defineEmits(['edit', 'click']);
 
 const sizeClasses = computed(() => {
   switch (props.item.size) {
@@ -53,6 +53,7 @@ const socialHandle = computed(() => {
     class="relative group bg-white rounded-3xl border border-black/5 hover:border-black/10 shadow-sm hover:shadow-none active:scale-95 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer h-full w-full"
     :class="{ 'border-dashed border-2 border-gray-300 shadow-none hover:shadow-none bg-gray-50': item.type === 'placeholder' }"
     :style="item.type !== 'placeholder' ? bgStyle : {}"
+    @click="$emit('click', item)"
   >
     <!-- Social/Image Link Wrapper -->
     <a 
@@ -64,7 +65,7 @@ const socialHandle = computed(() => {
 
     <!-- Drag Handle (visible only when sorting/owner) -->
     <div v-if="sorting && item.type !== 'placeholder'" 
-    class="absolute top-4 left-4 rounded-full text-gray-400 hover:text-blue-500 bg-white/100  transition-colors cursor-move z-10">
+    class="absolute top-4 left-4 rounded-md p-2 text-gray-400 hover:text-blue-500 bg-white/100  transition-colors cursor-move z-10">
       <GripVertical class="w-4 h-4" />
     </div>
 
@@ -72,7 +73,7 @@ const socialHandle = computed(() => {
     <button 
       v-if="sorting && item.type !== 'placeholder'" 
       @click.stop="$emit('edit', item)" 
-      class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-blue-500 bg-white/100 transition-colors z-10"
+      class="absolute top-4 right-4 rounded-md p-2 text-gray-400 hover:text-blue-500 bg-white/100 transition-colors z-10"
     >
       <Pencil class="w-4 h-4" />
     </button>
@@ -92,11 +93,12 @@ const socialHandle = computed(() => {
           <img :src="item.content" class="w-full h-full object-cover" alt="Widget" />
         </div>
 
-        <div v-else-if="item.type === 'text'" class="text-center">
-          <p class="font-medium text-gray-800">{{ item.content }}</p>
+        <div v-else-if="item.type === 'text'" class="flex flex-col h-full w-full">
+          <span v-if="item.title" class="font-bold text-gray-900 leading-tight mb-2">{{ item.title }}</span>
+          <p class="font-medium text-gray-500 text-sm line-clamp-3 leading-relaxed">{{ item.content }}</p>
         </div>
         
-        <div v-else-if="item.type === 'placeholder'" class="text-gray-400 flex flex-col items-center">
+        <div v-else-if="item.type === 'placeholder'" class="text-gray-400 flex flex-col items-center w-full">
             <span class="text-2xl">+</span>
             <span class="text-xs font-medium">Add Widget</span>
         </div>

@@ -7,6 +7,7 @@ import BentoGrid from '../components/BentoGrid.vue'
 import AddWidgetModal from '../components/AddWidgetModal.vue'
 import ShareModal from '../components/ShareModal.vue'
 import SettingsModal from '../components/SettingsModal.vue'
+import TextDetailModal from '../components/TextDetailModal.vue'
 import { Edit2, Check, Plus, Loader2 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 
@@ -15,8 +16,10 @@ const store = useProfileStore()
 const showAddModal = ref(false)
 const showShareModal = ref(false)
 const showSettingsModal = ref(false)
+const showTextModal = ref(false)
 const isEditingWidget = ref(false)
 const widgetToEdit = ref(null)
+const selectedTextWidget = ref(null)
 const currentUrl = window.location.href
 
 // Logic to load profile key off route params
@@ -71,6 +74,15 @@ function openEditModal(widget) {
     showAddModal.value = true
 }
 
+function handleItemClick(item) {
+    if (store.toggleEditMode) return; // Don't open if editing
+
+    if (item.type === 'text') {
+        selectedTextWidget.value = item;
+        showTextModal.value = true;
+    }
+}
+
 function toggleEdit() {
     store.toggleEditMode = !store.toggleEditMode
 }
@@ -86,7 +98,7 @@ function toggleEdit() {
 
   <div v-else class="min-h-screen flex flex-col md:flex-row bg-white w-full mx-auto sm:max-w-[428px] md:max-w-[1728px]">
     <!-- Sidebar on Desktop, Header on Mobile -->
-    <aside class="w-full md:w-[350px] shrink-0 bg-white z-10">
+    <aside class="w-full md:w-[400px] shrink-0 bg-white z-10">
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"
@@ -102,16 +114,7 @@ function toggleEdit() {
     <!-- Main Content -->
     <main class="flex-1 relative bg-transparent overflow-y-auto">
       <!-- Edit Toggle (Only for Owner) -->
-      <div v-if="store.isOwner" class="absolute top-4 right-4 z-50 flex gap-2">
-        <button 
-          @click="toggleEdit"
-          class="p-3 rounded-full shadow-lg transition-all border border-gray-100/50"
-          :class="store.toggleEditMode ? 'bg-black text-white ring-4 ring-black/10' : 'bg-white text-gray-700 hover:bg-gray-100 active:scale-95'"
-        >
-          <Check v-if="store.toggleEditMode" class="w-5 h-5" />
-          <Edit2 v-else class="w-5 h-5" />
-        </button>
-      </div> 
+     
 
       <BentoGrid 
         :items="store.widgets" 
@@ -120,16 +123,28 @@ function toggleEdit() {
         @update:items="store.updateWidgets"
         @edit-item="openEditModal"
         @add-item="openAddModal" 
+        @click-item="handleItemClick"
       />
 
       <!-- Floating Add Button (Only for Owner) -->
-      <button 
-        v-if="store.isOwner"
-        @click="openAddModal"
-        class="fixed bottom-8 right-8 z-50 p-4 bg-black text-white rounded-full shadow-2xl hover:scale-110 hover:rotate-90 transition-all duration-300 active:scale-95"
-      >
+      
+       <div v-if="store.isOwner" class="fixed bottom-8 right-8 z-50 z-50 flex gap-2">
+        <button 
+          @click="toggleEdit"
+          class="p-4 rounded-full shadow-2xl transition-all border border-gray-100/50"
+          :class="store.toggleEditMode ? 'bg-black text-white ring-4 ring-black/10' : 'bg-white text-gray-700 hover:bg-gray-100 active:scale-95'"
+        >
+          <Check v-if="store.toggleEditMode" class="w-5 h-5" />
+          <Edit2 v-else class="w-5 h-5" />
+        </button>
+        <button 
+          v-if="store.isOwner"
+          @click="openAddModal"
+          class="p-4 bg-black text-white rounded-full shadow-2xl hover:scale-110 hover:rotate-90 transition-all duration-300 active:scale-95"
+          >
         <Plus class="w-6 h-6" />
       </button>
+      </div> 
     </main>
 
     <!-- Modals -->
@@ -144,5 +159,12 @@ function toggleEdit() {
     />
     <ShareModal :isOpen="showShareModal" :url="currentUrl" @close="showShareModal = false" />
     <SettingsModal :isOpen="showSettingsModal" :currentHandle="store.profile.username" @close="showSettingsModal = false" />
+    <TextDetailModal 
+        v-if="selectedTextWidget"
+        :isOpen="showTextModal" 
+        :title="selectedTextWidget.title" 
+        :content="selectedTextWidget.content" 
+        @close="showTextModal = false" 
+    />
   </div>
 </template>

@@ -258,6 +258,36 @@ export const useProfileStore = defineStore('profile', () => {
         }
     }
 
+    async function uploadWidgetImage(file) {
+        if (!user.value) return null
+
+        // 1MB Limit
+        if (file.size > 1 * 1024 * 1024) {
+            throw new Error('Image too large (max 1MB)')
+        }
+
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${user.value.id}-${Date.now()}.${fileExt}`
+        const filePath = `${fileName}`
+
+        // Upload to Storage
+        const { error: uploadError } = await supabase.storage
+            .from('widgets')
+            .upload(filePath, file, { upsert: true })
+
+        if (uploadError) {
+            console.error('Widget image upload failed', uploadError)
+            return null
+        }
+
+        // Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('widgets')
+            .getPublicUrl(filePath)
+
+        return publicUrl
+    }
+
     async function uploadAvatar(file) {
         if (!user.value) return
 
@@ -341,6 +371,7 @@ export const useProfileStore = defineStore('profile', () => {
         signOut,
         // Restored Actions
         updateProfile,
-        uploadAvatar
+        uploadAvatar,
+        uploadWidgetImage
     }
 })

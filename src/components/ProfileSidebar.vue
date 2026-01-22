@@ -109,15 +109,15 @@ function updateField(field, event) {
         
         <!-- Main Actions -->
         <div class="flex gap-2 justify-center md:justify-start">
-            <button @click="$emit('share')" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
+            <button @click="$emit('share')" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
                 <Share2 class="w-4 h-4 mr-2" />
                 Share
             </button>
-            <div class="mx-2 border-l border-gray-200"></div>
+            <div class="mx-1 border-l border-gray-200"></div>
             <button 
               v-if="!user"
               @click="$emit('login')"
-              class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1"
+              class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
             >
               Log in
             </button>
@@ -125,14 +125,14 @@ function updateField(field, event) {
             <button 
               v-else
               @click="$emit('logout')"
-              class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1"
+              class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
             >
               Log out
             </button>
             
-            <div class="mx-2 border-l border-gray-200"></div>
+            <div class="mx-1 border-l border-gray-200"></div>
             <div v-if="!user" class="">
-                <a href="/" class="text-xs font-medium text-gray-400 hover:text-black transition-colors flex items-center gap-1">
+                <a href="/" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
                     Claim your own
                 </a>
             </div>
