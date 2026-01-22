@@ -96,9 +96,11 @@ function toggleEdit() {
       </div>
   </div>
 
-  <div v-else class="min-h-screen flex flex-col md:flex-row bg-white w-full mx-auto sm:max-w-[428px] md:max-w-[1728px]">
+  <div v-else class="min-h-screen md:h-screen flex flex-col md:flex-row bg-white w-full
+            overflow-visible md:overflow-hidden">
     <!-- Sidebar on Desktop, Header on Mobile -->
-    <aside class="w-full md:w-[400px] shrink-0 bg-white z-10">
+    <aside class="w-full md:w-[400px] shrink-0 bg-white z-20
+              static md:fixed md:top-0 md:left-0 md:h-screen">
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"
@@ -112,7 +114,9 @@ function toggleEdit() {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 relative bg-transparent overflow-y-auto">
+    <main class="flex-1 bg-transparent
+             overflow-visible md:overflow-y-auto
+             md:ml-[400px] md:h-screen">
       <!-- Edit Toggle (Only for Owner) -->
      
 
