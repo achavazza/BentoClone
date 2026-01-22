@@ -417,11 +417,15 @@ export const useProfileStore = defineStore('profile', () => {
         const stats = {
             totalVisits,
             totalClicks,
+            uniqueVisitors: 0,
             browsers: {},
             os: {},
             referrers: {},
+            countries: {},
             clicksByWidget: {}
         }
+
+        const uniqueVids = new Set()
 
         // Add counts from recent logs that are NOT yet in daily_stats 
         // Or if you keep analytics for a while, just aggregate them for the breakdowns
@@ -429,10 +433,14 @@ export const useProfileStore = defineStore('profile', () => {
             const browserName = e.browser || 'Unknown'
             const osName = e.os || 'Unknown'
             const referrerName = e.referrer || 'Direct'
+            const countryName = e.country || 'Unknown'
 
             stats.browsers[browserName] = (stats.browsers[browserName] || 0) + 1
             stats.os[osName] = (stats.os[osName] || 0) + 1
             stats.referrers[referrerName] = (stats.referrers[referrerName] || 0) + 1
+            stats.countries[countryName] = (stats.countries[countryName] || 0) + 1
+
+            if (e.visitor_id) uniqueVids.add(e.visitor_id)
 
             if (e.event_type === 'click' && e.widget_id) {
                 stats.clicksByWidget[e.widget_id] = (stats.clicksByWidget[e.widget_id] || 0) + 1
@@ -443,6 +451,8 @@ export const useProfileStore = defineStore('profile', () => {
             if (e.event_type === 'visit') stats.totalVisits++
             if (e.event_type === 'click') stats.totalClicks++
         })
+
+        stats.uniqueVisitors = uniqueVids.size
 
         return stats
     }

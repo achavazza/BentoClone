@@ -8,9 +8,11 @@ const props = defineProps({
     default: () => ({
       totalVisits: 0,
       totalClicks: 0,
+      uniqueVisitors: 0,
       browsers: {},
       os: {},
       referrers: {},
+      countries: {},
       clicksByWidget: {}
     })
   }
@@ -51,7 +53,15 @@ const getTopItems = (obj, limit = 5) => {
             <div class="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex flex-col gap-1 transition-all hover:shadow-lg hover:shadow-blue-500/5">
                 <div class="flex items-center gap-2 text-blue-600 mb-2">
                     <Users class="w-5 h-5" />
-                    <span class="font-bold text-sm uppercase tracking-wider">Total Visits</span>
+                    <span class="font-bold text-sm uppercase tracking-wider">Unique Visitors</span>
+                </div>
+                <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.uniqueVisitors) }}</span>
+            </div>
+            
+            <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/50 flex flex-col gap-1 transition-all hover:shadow-lg hover:shadow-gray-500/5">
+                <div class="flex items-center gap-2 text-gray-600 mb-2">
+                    <Monitor class="w-5 h-5" />
+                    <span class="font-bold text-sm uppercase tracking-wider">Total Pageviews</span>
                 </div>
                 <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.totalVisits) }}</span>
             </div>
@@ -84,19 +94,19 @@ const getTopItems = (obj, limit = 5) => {
                 </div>
             </div>
 
-            <!-- Platforms -->
+            <!-- Top Countries -->
             <div class="space-y-4">
                 <div class="flex items-center gap-2 text-gray-900">
-                    <Monitor class="w-5 h-5" />
-                    <h4 class="font-black text-lg">Platform Breakdown</h4>
+                    <Globe class="w-5 h-5" />
+                    <h4 class="font-black text-lg">Top Countries</h4>
                 </div>
                 <div class="bg-gray-50 rounded-2xl p-4 space-y-3">
-                    <div v-for="[name, count] in getTopItems(stats.os)" :key="name" class="flex justify-between items-center text-sm">
-                        <span class="font-semibold text-gray-600">{{ name }}</span>
+                    <div v-for="[name, count] in getTopItems(stats.countries)" :key="name" class="flex justify-between items-center text-sm">
+                        <span class="font-semibold text-gray-600 truncate max-w-[150px]">{{ name }}</span>
                         <span class="bg-white px-2 py-1 rounded-lg font-bold text-gray-900 shadow-sm">{{ count }}</span>
                     </div>
-                    <div v-if="Object.keys(stats.os).length === 0" class="text-gray-400 text-sm italic py-2">
-                        No data yet
+                    <div v-if="Object.keys(stats.countries).length === 0" class="text-gray-400 text-sm italic py-2">
+                        No geographic data yet
                     </div>
                 </div>
             </div>
