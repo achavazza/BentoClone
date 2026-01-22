@@ -350,6 +350,50 @@ export const useProfileStore = defineStore('profile', () => {
         window.location.href = '/'
     }
 
+    async function fetchTotalVisits(profileId) {
+        const { count, error } = await supabase
+            .from('analytics')
+            .select('*', { count: 'exact', head: true })
+            .eq('profile_id', profileId)
+            .eq('event_type', 'visit')
+
+        if (error) return 0
+        return count || 0
+    }
+
+    async function fetchAnalyticsData(profileId) {
+        // Fetch all stats for the owner
+        const { data, error } = await supabase
+            .from('analytics')
+            .select('*')
+            .eq('profile_id', profileId)
+            .order('created_at', { ascending: false })
+            .limit(1000)
+
+        if (error) return null
+
+        // Aggregate data
+        const stats = {
+            totalVisits: data.filter(e => e.event_type === 'visit').length,
+            totalClicks: data.filter(e => e.event_type === 'click').length,
+            browsers: {},
+            os: {},
+            referrers: {},
+            clicksByWidget: {}
+        }
+
+        data.forEach(e => {
+            if (e.browser) stats.browsers[e.browser] = (stats.browsers[e.browser] || 0) + 1
+            if (e.os) stats.os[e.os] = (stats.os[e.os] || 0) + 1
+            if (e.referrer) stats.referrers[e.referrer] = (stats.referrers[e.referrer] || 0) + 1
+            if (e.event_type === 'click' && e.widget_id) {
+                stats.clicksByWidget[e.widget_id] = (stats.clicksByWidget[e.widget_id] || 0) + 1
+            }
+        })
+
+        return stats
+    }
+
     return {
         user,
         profile,
@@ -372,6 +416,8 @@ export const useProfileStore = defineStore('profile', () => {
         // Restored Actions
         updateProfile,
         uploadAvatar,
-        uploadWidgetImage
+        uploadWidgetImage,
+        fetchTotalVisits,
+        fetchAnalyticsData
     }
 })

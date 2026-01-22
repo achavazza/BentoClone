@@ -15,10 +15,14 @@ const props = defineProps({
       id: null
     })
   },
-  user: Object
+  user: Object,
+  visitorCount: {
+    type: Number,
+    default: 0
+  }
 });
 
-const emit = defineEmits(['login', 'logout', 'share', 'update', 'upload-avatar', 'open-settings']);
+const emit = defineEmits(['login', 'logout', 'share', 'update', 'upload-avatar', 'open-settings', 'open-analytics']);
 
 const isOwner = computed(() => props.user && props.profile && props.user.id === props.profile.id);
 
@@ -108,12 +112,21 @@ function updateField(field, event) {
        <!-- Minimalist Footer Links -->
         
         <!-- Main Actions -->
-        <div class="flex gap-2 justify-center md:justify-start">
+        <div class="flex gap-2 justify-center md:justify-start flex-wrap">
+            <button 
+                v-if="isOwner" 
+                @click="$emit('open-analytics')" 
+                class="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-all flex items-center gap-1.5 border border-blue-200/50"
+            >
+                <Users class="w-3 h-3" />
+                {{ visitorCount }} visitors
+            </button>
+            <div v-if="isOwner" class="mx-1 border-l border-gray-200 h-4 self-center"></div>
             <button @click="$emit('share')" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
                 <Share2 class="w-4 h-4 mr-2" />
                 Share
             </button>
-            <div class="mx-1 border-l border-gray-200"></div>
+            <div class="mx-1 border-l border-gray-200 h-4 self-center"></div>
             <button 
               v-if="!user"
               @click="$emit('login')"
@@ -130,7 +143,7 @@ function updateField(field, event) {
               Log out
             </button>
             
-            <div class="mx-1 border-l border-gray-200"></div>
+            <div class="mx-1 border-l border-gray-200 h-4 self-center"></div>
             <div v-if="!user" class="">
                 <a href="/" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
                     Claim your own

@@ -8,8 +8,10 @@ import AddWidgetModal from '../components/AddWidgetModal.vue'
 import ShareModal from '../components/ShareModal.vue'
 import SettingsModal from '../components/SettingsModal.vue'
 import TextDetailModal from '../components/TextDetailModal.vue'
-import { Edit2, Check, Plus, Loader2 } from 'lucide-vue-next'
+import AnalyticsModal from '../components/AnalyticsModal.vue'
+import { Edit2, Check, Plus, Loader2, Users } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
+import { trackEvent } from '../utils/analytics'
 
 const route = useRoute()
 const store = useProfileStore()
@@ -17,10 +19,20 @@ const showAddModal = ref(false)
 const showShareModal = ref(false)
 const showSettingsModal = ref(false)
 const showTextModal = ref(false)
+const showAnalyticsModal = ref(false)
 const isEditingWidget = ref(false)
 const widgetToEdit = ref(null)
 const selectedTextWidget = ref(null)
+const totalVisitors = ref(0)
+const analyticsStats = ref(null)
 const currentUrl = window.location.href
+
+async function openAnalytics() {
+    if (!store.profile) return
+    const stats = await store.fetchAnalyticsData(store.profile.id)
+    analyticsStats.value = stats
+    showAnalyticsModal.value = true
+}
 
 // Logic to load profile key off route params
 onMounted(async () => {
@@ -34,6 +46,18 @@ watch(() => route.params.username, () => {
 
 async function loadProfile() {
     const success = await store.loadProfileByUsername(route.params.username)
+    if (success && store.profile) {
+        if (!store.isOwner) {
+            // Track visit if not the owner
+            trackEvent({
+                profile_id: store.profile.id,
+                event_type: 'visit'
+            })
+        } else {
+            // Fetch stats if owner
+            totalVisitors.value = await store.fetchTotalVisits(store.profile.id)
+        }
+    }
     if (!success) {
         // Handle 404
         // router.push('/') or show error state
@@ -77,6 +101,17 @@ function openEditModal(widget) {
 function handleItemClick(item) {
     if (store.toggleEditMode) return; // Don't open if editing
 
+    // Track click for everyone (including owner if you want, but usually better to exclude)
+    if (!store.isOwner) {
+        trackEvent({
+            profile_id: store.profile.id,
+            event_type: 'click',
+            widget_id: item.id,
+            widget_type: item.type,
+            target_url: item.content
+        })
+    }
+
     if (item.type === 'text' || item.type === 'image') {
         selectedTextWidget.value = item;
         showTextModal.value = true;
@@ -104,10 +139,12 @@ function toggleEdit() {
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"
+        :visitorCount="totalVisitors"
         @login="store.signInWithGoogle"
         @logout="store.signOut"
         @share="showShareModal = true"
         @open-settings="showSettingsModal = true"
+        @open-analytics="openAnalytics"
         @update="store.updateProfile"
         @upload-avatar="store.uploadAvatar"
       />
@@ -170,6 +207,12 @@ function toggleEdit() {
         :content="selectedTextWidget.content" 
         :type="selectedTextWidget.type"
         @close="showTextModal = false" 
+    />
+    <AnalyticsModal 
+        v-if="analyticsStats"
+        :isOpen="showAnalyticsModal"
+        :stats="analyticsStats"
+        @close="showAnalyticsModal = false"
     />
   </div>
 </template>
