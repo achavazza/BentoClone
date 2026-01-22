@@ -81,15 +81,6 @@ watch(() => store.profile?.avatar_url, (newUrl) => {
     if (newUrl) updateFavicon(newUrl)
 })
 
-// Check for QR source tracking (global visit)
-onMounted(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('source') === 'qr') {
-        supabase.from('visits').insert({ source: 'qr' })
-        .then(res => console.log('Tracked QR visit', res))
-    }
-})
-
 // Modal Handlers
 function handleAddWidget(widget) {
     store.addWidget(widget)

@@ -79,7 +79,7 @@ function updateField(field, event) {
     </h1>
     <p class="text-gray-500 font-medium mb-4 flex items-start gap-2">
       @{{ profile.username }}
-      <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
+      <button v-if="isOwner" @click="$emit('open-settings')" class="p-1.5 -mt-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black">
         <Settings class="w-4 h-4" />
       </button>
     </p>

@@ -56,7 +56,7 @@ function copyLink() {
       </button>
 
       <div v-if="showQr" class="flex justify-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">
-           <qrcode-vue :value="url" :size="200" level="H" />
+           <qrcode-vue :value="`${url}?source=qr`" :size="200" level="H" />
       </div>
 
       <!-- Built-in Social Share (Native) -->

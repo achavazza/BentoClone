@@ -18,6 +18,11 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
         const parser = new UAParser();
         const result = parser.getResult();
 
+        // --- Detección de Parámetros de Origen (QR) ---
+        const params = new URLSearchParams(window.location.search);
+        const source = params.get('source') || params.get('utm_source');
+        const referrerValue = source === 'qr' ? 'QR Scan' : (document.referrer || 'direct');
+
         const eventData = {
             profile_id,
             event_type,
@@ -27,7 +32,7 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
             browser: result.browser.name || 'Unknown',
             os: result.os.name || 'Unknown',
             device: result.device.type || 'desktop',
-            referrer: document.referrer || 'direct',
+            referrer: referrerValue,
             page_path: window.location.pathname,
         };
 
