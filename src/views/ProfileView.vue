@@ -77,7 +77,7 @@ function openEditModal(widget) {
 function handleItemClick(item) {
     if (store.toggleEditMode) return; // Don't open if editing
 
-    if (item.type === 'text') {
+    if (item.type === 'text' || item.type === 'image') {
         selectedTextWidget.value = item;
         showTextModal.value = true;
     }
@@ -168,6 +168,7 @@ function toggleEdit() {
         :isOpen="showTextModal" 
         :title="selectedTextWidget.title" 
         :content="selectedTextWidget.content" 
+        :type="selectedTextWidget.type"
         @close="showTextModal = false" 
     />
   </div>

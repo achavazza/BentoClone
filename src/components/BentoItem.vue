@@ -57,7 +57,7 @@ const socialHandle = computed(() => {
   >
     <!-- Social/Image Link Wrapper -->
     <a 
-      v-if="item.content && item.type !== 'text' && item.type !== 'placeholder'" 
+      v-if="item.content && item.type !== 'text' && item.type !== 'image' && item.type !== 'placeholder'" 
       :href="item.content" 
       target="_blank" 
       class="absolute inset-0 z-0"
@@ -80,6 +80,7 @@ const socialHandle = computed(() => {
 
     <!-- Content Area (Centered) -->
     <div class="flex-1 flex flex-col justify-left items-start p-6 pointer-events-none">
+      
         <!-- Content Rendering -->
         <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
           <i v-if="item.icon" :class="[item.icon, 'text-4xl']"></i>
@@ -89,8 +90,15 @@ const socialHandle = computed(() => {
           </div>
         </div>
 
-        <div v-else-if="item.type === 'image'" class="absolute inset-0 z-[-1]">
-          <img :src="item.content" class="w-full h-full object-cover" alt="Widget" />
+        <div
+          v-else-if="item.type === 'image'"
+          class="-m-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)] overflow-hidden"
+        >
+          <img
+            :src="item.content"
+            class="w-full h-full object-cover"
+            alt="Widget"
+          />
         </div>
 
         <div v-else-if="item.type === 'text'" class="flex flex-col h-full w-full">
