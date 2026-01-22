@@ -393,27 +393,39 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function fetchAnalyticsData(profileId) {
-        // Fetch all stats for the owner
-        const { data, error } = await supabase
+        // 1. Get historical aggregated stats
+        const { data: historicalData, error: hError } = await supabase
+            .from('daily_stats')
+            .select('visit_count, click_count')
+            .eq('profile_id', profileId)
+
+        // 2. Get detailed logs for browser/os/referrers (usually we keep these for a few days in analytics)
+        const { data: recentLogs, error: rError } = await supabase
             .from('analytics')
             .select('*')
             .eq('profile_id', profileId)
             .order('created_at', { ascending: false })
-            .limit(1000)
+            .limit(2000)
 
-        if (error) return null
+        if (hError || rError) return null
 
-        // Aggregate data
+        // Aggregate historical totals
+        let totalVisits = historicalData?.reduce((sum, row) => sum + (row.visit_count || 0), 0) || 0
+        let totalClicks = historicalData?.reduce((sum, row) => sum + (row.click_count || 0), 0) || 0
+
+        // Start stats object
         const stats = {
-            totalVisits: data.filter(e => e.event_type === 'visit').length,
-            totalClicks: data.filter(e => e.event_type === 'click').length,
+            totalVisits,
+            totalClicks,
             browsers: {},
             os: {},
             referrers: {},
             clicksByWidget: {}
         }
 
-        data.forEach(e => {
+        // Add counts from recent logs that are NOT yet in daily_stats 
+        // Or if you keep analytics for a while, just aggregate them for the breakdowns
+        recentLogs.forEach(e => {
             const browserName = e.browser || 'Unknown'
             const osName = e.os || 'Unknown'
             const referrerName = e.referrer || 'Direct'
@@ -425,6 +437,11 @@ export const useProfileStore = defineStore('profile', () => {
             if (e.event_type === 'click' && e.widget_id) {
                 stats.clicksByWidget[e.widget_id] = (stats.clicksByWidget[e.widget_id] || 0) + 1
             }
+
+            // If we are counting these in real-time, add to totals
+            // (Note: If consolidated daily_stats only goes up to yesterday, this is correct)
+            if (e.event_type === 'visit') stats.totalVisits++
+            if (e.event_type === 'click') stats.totalClicks++
         })
 
         return stats
