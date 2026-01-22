@@ -38,7 +38,6 @@ async function openAnalytics() {
 
 // Logic to load profile key off route params
 onMounted(async () => {
-  await store.initAuth() // Wait for auth to be ready
   loadProfile()
 })
 

@@ -14,36 +14,7 @@ const password = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 
-onMounted(() => {
-    store.initAuth()
-})
-
-// Smart Redirect Logic
-watch(() => store.user, async (newUser) => {
-    if (newUser) {
-        isLoading.value = true
-        // Fetch their profile to get username
-        const { data } = await supabase.from('profiles').select('username').eq('id', newUser.id).single()
-        
-        isLoading.value = false
-        if (data && data.username) {
-            // Check if it looks like a temp/random handle?
-            // For now, if it exists, go to it.
-            // If we implement "is_onboarded" flag later, check that.
-            // Let's assume if it contains 'user_' + random numbers it MIGHT be temp, but user could have chosen it.
-            // Actually, OnboardingView handles the "Choose" flow. 
-            // V5: Always redirect to /welcome if it's a fresh signup? 
-            // Or just check if they have a 'username' that is set.
-            // Since we generate one on auth init, they always have one.
-            // Let's rely on the user manually navigating or a specific flag.
-            // User Request: "Login -> Enter directly to profile"
-            router.push(`/${data.username}`)
-        } else {
-            router.push('/welcome')
-        }
-    }
-})
-
+// Email Auth Handler
 async function handleEmailAuth() {
     isLoading.value = true
     errorMsg.value = ''
@@ -52,11 +23,10 @@ async function handleEmailAuth() {
             await store.signInWithEmail(email.value, password.value)
         } else {
             await store.signUpWithEmail(email.value, password.value)
-            // SignUp successful, but might need email verification depending on Supabase settings.
-            // Assuming default loose settings or auto-login.
         }
     } catch (e) {
         errorMsg.value = e.message
+    } finally {
         isLoading.value = false
     }
 }
