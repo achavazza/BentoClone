@@ -443,7 +443,16 @@ export const useProfileStore = defineStore('profile', () => {
             if (e.visitor_id) uniqueVids.add(e.visitor_id)
 
             if (e.event_type === 'click' && e.widget_id) {
-                stats.clicksByWidget[e.widget_id] = (stats.clicksByWidget[e.widget_id] || 0) + 1
+                const widget = widgets.value.find(w => w.id === e.widget_id);
+                let widgetName = 'Unknown Widget';
+
+                if (widget) {
+                    widgetName = widget.title || (widget.content ? new URL(widget.content).hostname : 'Link');
+                } else if (e.widget_type === 'social' && e.target_url) {
+                    try { widgetName = new URL(e.target_url).hostname; } catch (e) { widgetName = 'Link'; }
+                }
+
+                stats.clicksByWidget[widgetName] = (stats.clicksByWidget[widgetName] || 0) + 1
             }
 
             // If we are counting these in real-time, add to totals

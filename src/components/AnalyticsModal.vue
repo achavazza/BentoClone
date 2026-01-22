@@ -112,6 +112,34 @@ const getTopItems = (obj, limit = 5) => {
             </div>
         </div>
 
+        <!-- Most Clicked Links -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 text-gray-900">
+                <MousePointer2 class="w-5 h-5" />
+                <h4 class="font-black text-lg">Most Clicked Links</h4>
+            </div>
+            <div class="bg-gray-50 rounded-2xl p-6">
+                <div v-if="Object.keys(stats.clicksByWidget).length === 0" class="text-gray-400 text-sm italic text-center py-4">
+                    No clicks tracked yet
+                </div>
+                <div v-else class="space-y-4">
+                    <div v-for="[name, count] in getTopItems(stats.clicksByWidget, 10)" :key="name" class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-sm text-gray-800 truncate pr-4">{{ name }}</span>
+                            <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-1 rounded-md">{{ count }} clicks</span>
+                        </div>
+                        <!-- Progress bar visualization -->
+                        <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                                class="bg-purple-500 h-full rounded-full transition-all duration-1000" 
+                                :style="{ width: `${(count / stats.totalClicks) * 100}%` }"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Devices & Browsers (Optional/Extra) -->
          <div class="space-y-4">
             <div class="flex items-center gap-2 text-gray-900">
