@@ -47,6 +47,7 @@ watch(() => route.params.username, () => {
 async function loadProfile() {
     const success = await store.loadProfileByUsername(route.params.username)
     if (success && store.profile) {
+        updateFavicon(store.profile.avatar_url)
         if (!store.isOwner) {
             // Track visit if not the owner
             trackEvent({
@@ -63,6 +64,22 @@ async function loadProfile() {
         // router.push('/') or show error state
     }
 }
+
+function updateFavicon(url) {
+    if (!url) return
+    let link = document.querySelector("link[rel~='icon']")
+    if (!link) {
+        link = document.createElement('link')
+        link.rel = 'icon'
+        document.getElementsByTagName('head')[0].appendChild(link)
+    }
+    link.href = url
+}
+
+// Watch for avatar changes to update favicon in real-time
+watch(() => store.profile?.avatar_url, (newUrl) => {
+    if (newUrl) updateFavicon(newUrl)
+})
 
 // Check for QR source tracking (global visit)
 onMounted(() => {
