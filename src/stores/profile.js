@@ -345,9 +345,27 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function signOut() {
-        await supabase.auth.signOut()
+        try {
+            await supabase.auth.signOut()
+        } catch (e) {
+            console.error('Supabase signOut error', e)
+        }
+
+        // Manual cleanup to be 100% sure
         user.value = null
-        window.location.href = '/'
+        profile.value = null
+        widgets.value = []
+        toggleEditMode.value = false
+
+        // Clear Supabase local storage keys manually as a safety measure
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('supabase.auth.token') || key.startsWith('sb-')) {
+                localStorage.removeItem(key)
+            }
+        })
+
+        // Use hard reload to root to ensure all listeners and states are fully purged
+        window.location.href = window.location.origin
     }
 
     async function fetchTotalVisits(profileId) {
