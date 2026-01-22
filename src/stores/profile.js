@@ -268,11 +268,11 @@ export const useProfileStore = defineStore('profile', () => {
 
         const fileExt = file.name.split('.').pop()
         const fileName = `${Date.now()}.${fileExt}`
-        const filePath = `${user.value.id}/${fileName}`
+        const filePath = `${user.value.id}/widgets/${fileName}`
 
         // Upload to Storage
         const { error: uploadError } = await supabase.storage
-            .from('widgets')
+            .from('user-content')
             .upload(filePath, file, { upsert: true })
 
         if (uploadError) {
@@ -282,7 +282,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         // Get Public URL
         const { data: { publicUrl } } = supabase.storage
-            .from('widgets')
+            .from('user-content')
             .getPublicUrl(filePath)
 
         return publicUrl
@@ -292,11 +292,11 @@ export const useProfileStore = defineStore('profile', () => {
         if (!user.value) return
 
         const fileExt = file.name.split('.').pop()
-        const filePath = `${user.value.id}/avatar.${fileExt}`
+        const filePath = `${user.value.id}/avatar/current.${fileExt}`
 
         // Upload to Storage
         const { error: uploadError } = await supabase.storage
-            .from('avatars')
+            .from('user-content')
             .upload(filePath, file, { upsert: true })
 
         if (uploadError) {
@@ -306,7 +306,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         // Get Public URL
         const { data: { publicUrl } } = supabase.storage
-            .from('avatars')
+            .from('user-content')
             .getPublicUrl(filePath)
 
         // Update Profile
