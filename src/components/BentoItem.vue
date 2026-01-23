@@ -89,7 +89,7 @@ const socialHandle = computed(() => {
           </template>
           <div class="flex flex-col">
             <span class="font-semibold text-gray-900 leading-tight mb-1">{{ item.title }}</span>
-            <span v-if="socialHandle" class="text-xs text-gray-400 font-medium">{{ socialHandle }}</span>
+            <span v-if="socialHandle" class="text-xs text-gray-400 font-medium mix-blend-multiply">{{ socialHandle }}</span>
           </div>
         </div>
 

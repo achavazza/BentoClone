@@ -37,7 +37,7 @@ function getSpanClasses(size) {
 </script>
 
 <template>
-  <div class="p-4 flex justify-center pb-24 min-h-full">
+  <div class="p-8 flex justify-center pb-24 min-h-full">
     <draggable 
       v-model="gridItems" 
       item-key="id"
