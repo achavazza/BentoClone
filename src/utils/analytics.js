@@ -13,6 +13,28 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
         return;
     }
 
+    // A. Skip if it's a page reload
+    try {
+        const navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+            return;
+        }
+    } catch (e) {
+        // Fallback for older browsers if needed
+    }
+
+    // B. Skip internal visits for 'visit' event
+    if (event_type === 'visit' && document.referrer) {
+        try {
+            const referrerHost = new URL(document.referrer).host;
+            if (referrerHost === window.location.host) {
+                return;
+            }
+        } catch (e) {
+            // Invalid URL in referrer
+        }
+    }
+
     try {
         // 1. Manejo de ID de Visitante Único (LocalStorage)
         let visitor_id = localStorage.getItem('bento_visitor_id');
