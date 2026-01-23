@@ -149,8 +149,7 @@ export const useProfileStore = defineStore('profile', () => {
         widgets.value.splice(lastIdx, 0, widgetWithIcon)
 
         // Save
-        const { icon, ...dbWidget } = newWidget
-        const { data, error } = await supabase.from('widgets').insert(dbWidget).select().single()
+        const { data, error } = await supabase.from('widgets').insert(newWidget).select().single()
 
         if (data) {
             const idx = widgets.value.findIndex(w => w.id === tempId)
@@ -171,8 +170,7 @@ export const useProfileStore = defineStore('profile', () => {
             widgets.value[index] = { ...merged, icon: getWidgetIcon(merged) };
 
             if (typeof updatedWidget.id === 'number') {
-                const { icon, ...dbWidget } = widgets.value[index];
-                await supabase.from('widgets').update(dbWidget).eq('id', updatedWidget.id);
+                await supabase.from('widgets').update(widgets.value[index]).eq('id', updatedWidget.id);
             }
         }
     }
@@ -467,9 +465,17 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     function getWidgetIcon(w) {
+        // 1. High Priority: Manual icon from database
+        if (w.icon) return w.icon;
+
+        // 2. Special Rule: Notion (google favicon service fails on notion.site)
+        if (w.content && (w.content.includes('notion.site') || w.content.includes('notion.so'))) {
+            return 'https://www.google.com/s2/favicons?domain=notion.com&sz=64';
+        }
+
         if (w.type !== 'social' && w.type !== 'image') return null;
 
-        // 1. Check if it's a known social icon (by title or content)
+        // 3. Known Social Icons
         // Try title first
         if (socialIcons[w.title]) return socialIcons[w.title];
 
@@ -480,7 +486,7 @@ export const useProfileStore = defineStore('profile', () => {
         });
         if (knownSocialKey) return socialIcons[knownSocialKey];
 
-        // 2. If it's a generic link, fetch favicon
+        // 4. Generic Favicon
         if (w.content && w.content.startsWith('http')) {
             try {
                 const url = new URL(w.content);
