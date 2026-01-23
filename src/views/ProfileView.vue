@@ -53,7 +53,8 @@ async function loadProfile() {
             // Track visit if not the owner
             trackEvent({
                 profile_id: store.profile.id,
-                event_type: 'visit'
+                event_type: 'visit',
+                visitor_user_id: store.user?.id
             })
         } else {
             // Fetch stats if owner
@@ -117,7 +118,8 @@ function handleItemClick(item) {
             event_type: 'click',
             widget_id: item.id,
             widget_type: item.type,
-            target_url: item.content
+            target_url: item.content,
+            visitor_user_id: store.user?.id
         })
     }
 

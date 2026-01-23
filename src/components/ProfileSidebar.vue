@@ -86,7 +86,7 @@ function updateField(field, event) {
     
     <!-- Bio (Editable) -->
     <p 
-        class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm outline-none rounded transition-all border border-transparent"
+        class="text-gray-600 text-lg leading-relaxed mb-6 max-w-sm outline-none rounded transition-all border border-transparent whitespace-pre-wrap"
         :class="{'hover:border-gray-200 focus:border-gray-300 focus:bg-white cursor-text': isOwner}"
         :contenteditable="isOwner"
         @blur="updateField('bio', $event)"

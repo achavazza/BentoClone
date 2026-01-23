@@ -5,8 +5,13 @@ import { supabase } from '../lib/supabase';
  * Enhanced Analytics Provider
  * Captures unique visitors, country (via free API), and technical details.
  */
-export const trackEvent = async ({ profile_id, event_type, widget_id = null, widget_type = null, target_url = null }) => {
+export const trackEvent = async ({ profile_id, event_type, widget_id = null, widget_type = null, target_url = null, visitor_user_id = null }) => {
     if (!profile_id) return;
+
+    // Skip tracking if the visitor is the owner of the profile
+    if (visitor_user_id === profile_id) {
+        return;
+    }
 
     try {
         // 1. Manejo de ID de Visitante Único (LocalStorage)
@@ -58,7 +63,8 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
             os: result.os.name || 'Unknown',
             device: result.device.type || 'desktop',
             referrer: referrerValue,
-            page_path: window.location.pathname
+            page_path: window.location.pathname,
+            visitor_user_id // Optional: track which auth user is visiting (if any)
         };
 
         // 6. Insertar en Supabase
