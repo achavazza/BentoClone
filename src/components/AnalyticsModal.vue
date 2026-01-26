@@ -104,17 +104,17 @@ const getTopItems = (obj, limit = 5) => {
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-for="v in stats.recent" :key="v.id" class="hover:bg-white/50 transition-colors">
-                            <td class="px-4 py-3 text-gray-600 font-medium">
+                            <td class="px-4 py-3 text-gray-600">
                                 {{ new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
                             </td>
-                            <td class="px-4 py-3">
-                                <span class="font-bold text-gray-900">{{ v.country || 'Unknown' }}</span>
+                            <td class="px-4 py-3 text-gray-600">
+                                {{ v.country || 'Unknown' }}
                             </td>
-                            <td class="px-4 py-3 text-xs text-gray-500">
+                            <td class="px-4 py-3 text-gray-600">
                                 {{ v.browser }} / {{ v.os }}
                             </td>
-                            <td class="px-4 py-3 text-xs">
-                                <span class="px-2 py-1 bg-white rounded-md border border-gray-100 shadow-sm">{{ v.referrer }}</span>
+                            <td class="px-4 py-3 text-gray-600 text-xs">
+                                <span class="truncate">{{ v.referrer }}</span>
                             </td>
                         </tr>
                         <tr v-if="stats.recent.length === 0">

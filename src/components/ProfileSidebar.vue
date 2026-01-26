@@ -118,14 +118,10 @@ function updateField(field, event) {
             <button 
                 v-if="isOwner" 
                 @click="$emit('open-analytics')" 
-                class="text-[10px] font-bold text-gray-400 p-2 rounded-full bg-gray-50 hover:bg-gray-100 hover:text-black transition-all flex items-center gap-1.5 border border-gray-100"
+                class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
             >
-                <div class="flex items-center">
-                    <Users class="w-3.5 h-3.5 mr-1" />
-                    <span class="text-black">{{ visitorStats.total }}</span>
-                </div>
-                <span class="w-px h-2 bg-gray-200"></span>
-                <span class="text-blue-500">{{ visitorStats.today }} hoy</span>
+                <Users class="w-4 h-4 mr-1" />
+                {{ visitorStats.today }} Today
             </button>
 
             <button @click="$emit('share')" class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
