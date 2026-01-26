@@ -104,13 +104,13 @@ const getTopItems = (obj, limit = 5) => {
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-for="v in stats.recent" :key="v.id" class="hover:bg-white/50 transition-colors">
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
                             </td>
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ v.country || 'Unknown' }}
                             </td>
-                            <td class="px-4 py-3 text-gray-600">
+                            <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ v.browser }} / {{ v.os }}
                             </td>
                             <td class="px-4 py-3 text-gray-600 text-xs">
