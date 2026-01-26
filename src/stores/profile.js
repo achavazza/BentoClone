@@ -391,31 +391,49 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function fetchAnalyticsData(profileId) {
-        // 1. Get historical aggregated stats
-        const { data: historicalData, error: hError } = await supabase
+        const today = new Date().toISOString().split('T')[0]
+
+        // 1. Get historical aggregated stats (all time up to yesterday)
+        const { data: historicalData } = await supabase
             .from('daily_stats')
             .select('visit_count, click_count')
             .eq('profile_id', profileId)
 
-        // 2. Get detailed logs for browser/os/referrers (usually we keep these for a few days in analytics)
-        const { data: recentLogs, error: rError } = await supabase
+        // 2. Get today's logs (real-time)
+        const { data: todayLogs } = await supabase
+            .from('analytics')
+            .select('*')
+            .eq('profile_id', profileId)
+            .gte('created_at', today)
+
+        // 3. Get recent logs (all time, latest 1000 for details)
+        const { data: allLogs } = await supabase
             .from('analytics')
             .select('*')
             .eq('profile_id', profileId)
             .order('created_at', { ascending: false })
-            .limit(2000)
+            .limit(1000)
 
-        if (hError || rError) return null
+        // Aggregate historical entries
+        const historical = {
+            visits: historicalData?.reduce((s, r) => s + (r.visit_count || 0), 0) || 0,
+            clicks: historicalData?.reduce((s, r) => s + (r.click_count || 0), 0) || 0
+        }
 
-        // Aggregate historical totals
-        let totalVisits = historicalData?.reduce((sum, row) => sum + (row.visit_count || 0), 0) || 0
-        let totalClicks = historicalData?.reduce((sum, row) => sum + (row.click_count || 0), 0) || 0
+        // Aggregate today's entries from logs
+        const todayStats = {
+            visits: todayLogs?.filter(e => e.event_type === 'visit').length || 0,
+            clicks: todayLogs?.filter(e => e.event_type === 'click').length || 0,
+            unique: new Set(todayLogs?.filter(e => e.event_type === 'visit' && e.visitor_id).map(e => e.visitor_id)).size
+        }
 
-        // Start stats object
+        // Prepare full stats object
         const stats = {
-            totalVisits,
-            totalClicks,
-            uniqueVisitors: 0,
+            totalVisits: historical.visits + todayStats.visits,
+            totalClicks: historical.clicks + todayStats.clicks,
+            uniqueVisitors: 0, // Will be set below
+            today: todayStats,
+            recent: allLogs?.filter(e => e.event_type === 'visit').slice(0, 10) || [],
             browsers: {},
             os: {},
             referrers: {},
@@ -425,9 +443,9 @@ export const useProfileStore = defineStore('profile', () => {
 
         const uniqueVids = new Set()
 
-        // Add counts from recent logs that are NOT yet in daily_stats 
-        // Or if you keep analytics for a while, just aggregate them for the breakdowns
-        recentLogs.forEach(e => {
+        allLogs?.forEach(e => {
+            if (e.visitor_id) uniqueVids.add(e.visitor_id)
+
             const browserName = e.browser || 'Unknown'
             const osName = e.os || 'Unknown'
             const referrerName = e.referrer || 'Direct'
@@ -438,25 +456,16 @@ export const useProfileStore = defineStore('profile', () => {
             stats.referrers[referrerName] = (stats.referrers[referrerName] || 0) + 1
             stats.countries[countryName] = (stats.countries[countryName] || 0) + 1
 
-            if (e.visitor_id) uniqueVids.add(e.visitor_id)
-
             if (e.event_type === 'click' && e.widget_id) {
                 const widget = widgets.value.find(w => w.id === e.widget_id);
                 let widgetName = 'Unknown Widget';
-
                 if (widget) {
                     widgetName = widget.title || (widget.content ? new URL(widget.content).hostname : 'Link');
                 } else if (e.widget_type === 'social' && e.target_url) {
-                    try { widgetName = new URL(e.target_url).hostname; } catch (e) { widgetName = 'Link'; }
+                    try { widgetName = new URL(e.target_url).hostname; } catch (err) { widgetName = 'Link'; }
                 }
-
                 stats.clicksByWidget[widgetName] = (stats.clicksByWidget[widgetName] || 0) + 1
             }
-
-            // If we are counting these in real-time, add to totals
-            // (Note: If consolidated daily_stats only goes up to yesterday, this is correct)
-            if (e.event_type === 'visit') stats.totalVisits++
-            if (e.event_type === 'click') stats.totalClicks++
         })
 
         stats.uniqueVisitors = uniqueVids.size

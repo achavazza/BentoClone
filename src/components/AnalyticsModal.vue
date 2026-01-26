@@ -9,6 +9,8 @@ const props = defineProps({
       totalVisits: 0,
       totalClicks: 0,
       uniqueVisitors: 0,
+      today: { visits: 0, clicks: 0, unique: 0 },
+      recent: [],
       browsers: {},
       os: {},
       referrers: {},
@@ -48,14 +50,17 @@ const getTopItems = (obj, limit = 5) => {
       <!-- Content -->
       <div class="p-8 overflow-y-auto custom-scrollbar space-y-8">
         
-        <!-- Key Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Today vs Total Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex flex-col gap-1 transition-all hover:shadow-lg hover:shadow-blue-500/5">
                 <div class="flex items-center gap-2 text-blue-600 mb-2">
                     <Users class="w-5 h-5" />
                     <span class="font-bold text-sm uppercase tracking-wider">Unique Visitors</span>
                 </div>
-                <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.uniqueVisitors) }}</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.uniqueVisitors) }}</span>
+                    <span class="text-xs font-bold text-blue-500 bg-blue-100/50 px-2 py-0.5 rounded-full">+{{ stats.today.unique }} today</span>
+                </div>
             </div>
             
             <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/50 flex flex-col gap-1 transition-all hover:shadow-lg hover:shadow-gray-500/5">
@@ -63,15 +68,60 @@ const getTopItems = (obj, limit = 5) => {
                     <Monitor class="w-5 h-5" />
                     <span class="font-bold text-sm uppercase tracking-wider">Total Pageviews</span>
                 </div>
-                <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.totalVisits) }}</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.totalVisits) }}</span>
+                    <span class="text-xs font-bold text-gray-500 bg-gray-200/50 px-2 py-0.5 rounded-full">+{{ stats.today.visits }} today</span>
+                </div>
             </div>
             
             <div class="bg-purple-50/50 p-6 rounded-3xl border border-purple-100/50 flex flex-col gap-1 transition-all hover:shadow-lg hover:shadow-purple-500/5">
                 <div class="flex items-center gap-2 text-purple-600 mb-2">
                     <MousePointer2 class="w-5 h-5" />
-                    <span class="font-bold text-sm uppercase tracking-wider">Total Click-throughs</span>
+                    <span class="font-bold text-sm uppercase tracking-wider">Total Clicks</span>
                 </div>
-                <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.totalClicks) }}</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-gray-900">{{ formatCount(stats.totalClicks) }}</span>
+                    <span class="text-xs font-bold text-purple-500 bg-purple-100/50 px-2 py-0.5 rounded-full">+{{ stats.today.clicks }} today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Visitors Section -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 text-gray-900">
+                <Users class="w-5 h-5" />
+                <h4 class="font-black text-lg">Recent Visitors</h4>
+            </div>
+            <div class="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-100/50 border-b border-gray-100">
+                        <tr>
+                            <th class="px-4 py-3 font-bold text-gray-500">Time</th>
+                            <th class="px-4 py-3 font-bold text-gray-500">Location</th>
+                            <th class="px-4 py-3 font-bold text-gray-500">Device</th>
+                            <th class="px-4 py-3 font-bold text-gray-500">Via</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="v in stats.recent" :key="v.id" class="hover:bg-white/50 transition-colors">
+                            <td class="px-4 py-3 text-gray-600 font-medium">
+                                {{ new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-bold text-gray-900">{{ v.country || 'Unknown' }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-500">
+                                {{ v.browser }} / {{ v.os }}
+                            </td>
+                            <td class="px-4 py-3 text-xs">
+                                <span class="px-2 py-1 bg-white rounded-md border border-gray-100 shadow-sm">{{ v.referrer }}</span>
+                            </td>
+                        </tr>
+                        <tr v-if="stats.recent.length === 0">
+                            <td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No recent visitors to show</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 

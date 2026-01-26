@@ -25,7 +25,7 @@ const showAuthModal = ref(false)
 const isEditingWidget = ref(false)
 const widgetToEdit = ref(null)
 const selectedTextWidget = ref(null)
-const totalVisitors = ref(0)
+const visitorStats = ref({ total: 0, today: 0 })
 const analyticsStats = ref(null)
 const currentUrl = window.location.href
 
@@ -58,7 +58,13 @@ async function loadProfile() {
             })
         } else {
             // Fetch stats if owner
-            totalVisitors.value = await store.fetchTotalVisits(store.profile.id)
+            const stats = await store.fetchAnalyticsData(store.profile.id)
+            if (stats) {
+                visitorStats.value = {
+                    total: stats.totalVisits,
+                    today: stats.today.visits
+                }
+            }
         }
     }
     if (!success) {
@@ -150,7 +156,7 @@ function toggleEdit() {
       <ProfileSidebar 
         :profile="store.profile" 
         :user="store.user"
-        :visitorCount="totalVisitors"
+        :visitorStats="visitorStats"
         @login="showAuthModal = true"
         @logout="store.signOut"
         @share="showShareModal = true"

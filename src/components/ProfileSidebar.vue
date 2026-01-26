@@ -16,9 +16,9 @@ const props = defineProps({
     })
   },
   user: Object,
-  visitorCount: {
-    type: Number,
-    default: 0
+  visitorStats: {
+    type: Object,
+    default: () => ({ total: 0, today: 0 })
   }
 });
 
@@ -118,38 +118,34 @@ function updateField(field, event) {
             <button 
                 v-if="isOwner" 
                 @click="$emit('open-analytics')" 
-                class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
+                class="text-[10px] font-bold text-gray-400 p-2 rounded-full bg-gray-50 hover:bg-gray-100 hover:text-black transition-all flex items-center gap-1.5 border border-gray-100"
             >
-                <Users class="w-4 h-4 mr-2" />
-                {{ visitorCount }} visitors
+                <div class="flex items-center">
+                    <Users class="w-3.5 h-3.5 mr-1" />
+                    <span class="text-black">{{ visitorStats.total }}</span>
+                </div>
+                <span class="w-px h-2 bg-gray-200"></span>
+                <span class="text-blue-500">{{ visitorStats.today }} hoy</span>
             </button>
-            <div v-if="isOwner" class="mx-1 border-l border-gray-200 h-4 self-center"></div>
-            <button @click="$emit('share')" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
-                <Share2 class="w-4 h-4 mr-2" />
+
+            <button @click="$emit('share')" class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
+                <Share2 class="w-4 h-4 mr-1" />
                 Share
             </button>
-            <div class="mx-1 border-l border-gray-200 h-4 self-center"></div>
+
             <button 
-              v-if="!user"
-              @click="$emit('login')"
-              class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
-            >
-              Log in
-            </button>
-            
-            <button 
-              v-else
+              v-if="user"
               @click="$emit('logout')"
-              class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
+              class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1"
             >
-              Log out
+              Sign out
             </button>
             
-            <div class="mx-1 border-l border-gray-200 h-4 self-center"></div>
-            <div v-if="!user" class="">
-                <a href="/" class="text-xs font-medium text-gray-400 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
-                    Claim your own
-                </a>
+            <div v-if="!user" class="flex items-center gap-2">
+                <div class="mx-1 border-l border-gray-200 h-4"></div>
+                <button @click="$emit('login')" class="text-xs font-bold text-black border-2 border-black/5 px-4 py-2 rounded-xl hover:bg-black hover:text-white transition-all">
+                    Login
+                </button>
             </div>
         </div>
 
