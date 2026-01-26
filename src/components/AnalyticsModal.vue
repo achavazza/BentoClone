@@ -96,16 +96,20 @@ const getTopItems = (obj, limit = 5) => {
                 <table class="w-full text-left text-sm">
                     <thead class="bg-gray-100/50 border-b border-gray-100">
                         <tr>
-                            <th class="px-4 py-3 font-bold text-gray-500">Time</th>
-                            <th class="px-4 py-3 font-bold text-gray-500">Location</th>
-                            <th class="px-4 py-3 font-bold text-gray-500">Device</th>
-                            <th class="px-4 py-3 font-bold text-gray-500">Via</th>
+                            <th class="px-4 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider">When</th>
+                            <th class="px-4 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Activity</th>
+                            <th class="px-4 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Location</th>
+                            <th class="px-4 py-3 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Device</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr v-for="v in stats.recent" :key="v.id" class="hover:bg-white/50 transition-colors">
                             <td class="px-4 py-3 text-gray-600 text-xs">
-                                {{ new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
+                                <span class="font-bold block">{{ new Date(v.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) }}</span>
+                                <span class="opacity-60">{{ new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">
+                                <span :class="{'text-purple-600 font-bold': v.event_type === 'click'}">{{ v.activity }}</span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ v.country || 'Unknown' }}
@@ -113,12 +117,9 @@ const getTopItems = (obj, limit = 5) => {
                             <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ v.browser }} / {{ v.os }}
                             </td>
-                            <td class="px-4 py-3 text-gray-600 text-xs">
-                                <span class="truncate">{{ v.referrer }}</span>
-                            </td>
                         </tr>
                         <tr v-if="stats.recent.length === 0">
-                            <td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No recent visitors to show</td>
+                            <td colspan="4" class="px-4 py-8 text-center text-gray-400 italic">No recent activity to show</td>
                         </tr>
                     </tbody>
                 </table>

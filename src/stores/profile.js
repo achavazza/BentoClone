@@ -433,7 +433,20 @@ export const useProfileStore = defineStore('profile', () => {
             totalClicks: historical.clicks + todayStats.clicks,
             uniqueVisitors: 0, // Will be set below
             today: todayStats,
-            recent: allLogs?.filter(e => e.event_type === 'visit').slice(0, 10) || [],
+            recent: allLogs?.slice(0, 15).map(e => {
+                let activity = 'Visit';
+                if (e.event_type === 'click') {
+                    const widget = widgets.value.find(w => w.id === e.widget_id);
+                    let widgetName = 'Unknown Link';
+                    if (widget) {
+                        widgetName = widget.title || (widget.content ? new URL(widget.content).hostname : 'Link');
+                    } else if (e.widget_type === 'social' && e.target_url) {
+                        try { widgetName = new URL(e.target_url).hostname; } catch (err) { widgetName = 'Link'; }
+                    }
+                    activity = `Clicked: ${widgetName}`;
+                }
+                return { ...e, activity };
+            }) || [],
             browsers: {},
             os: {},
             referrers: {},
