@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import { X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-vue-next';
+import { X, CheckCircle2, AlertCircle, Loader2, Trash2 } from 'lucide-vue-next';
 import { useProfileStore } from '../stores/profile';
 
 const props = defineProps({
@@ -17,6 +17,9 @@ const isAvailable = ref(null);
 const errorMessage = ref('');
 const isSaving = ref(false);
 const showConfirm = ref(false);
+const showDeleteConfirm = ref(false);
+const deleteHandleConfirm = ref('');
+const isDeleting = ref(false);
 
 watch(() => props.isOpen, (val) => {
     if (val) {
@@ -24,6 +27,8 @@ watch(() => props.isOpen, (val) => {
         isAvailable.value = null;
         errorMessage.value = '';
         showConfirm.value = false;
+        showDeleteConfirm.value = false;
+        deleteHandleConfirm.value = '';
     }
 });
 
@@ -66,6 +71,20 @@ async function handleSave() {
         errorMessage.value = result.error;
         showConfirm.value = false;
     }
+}
+
+async function handleDeleteAccount() {
+    if (deleteHandleConfirm.value !== props.currentHandle) return;
+    
+    isDeleting.value = true;
+    errorMessage.value = '';
+    
+    const result = await store.deleteAccount();
+    if (!result.success) {
+        errorMessage.value = result.error;
+        isDeleting.value = false;
+    }
+    // No need to close or redirect manually if signOut reloads the page
 }
 </script>
 
@@ -139,6 +158,59 @@ async function handleSave() {
                     class="w-full py-3 text-gray-400 font-bold hover:text-black transition-colors"
                 >
                     Go back
+                </button>
+            </div>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div v-if="!showConfirm && !showDeleteConfirm" class="mt-8 pt-8 border-t border-gray-100">
+            <button 
+                @click="showDeleteConfirm = true"
+                class="w-full py-4 text-red-500 font-black hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center gap-2"
+            >
+                <Trash2 class="w-5 h-5" />
+                Delete Account
+            </button>
+        </div>
+
+        <!-- Delete Confirmation State -->
+        <div v-if="showDeleteConfirm" class="text-center animate-in slide-in-from-bottom-4 duration-300">
+            <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 class="w-10 h-10" />
+            </div>
+            <h4 class="text-xl font-black mb-3">Delete your account?</h4>
+            <p class="text-gray-500 text-sm font-medium mb-8 leading-relaxed">
+                This will permanently delete your profile, <br/>
+                all your links, and all uploaded files. <br/>
+                <span class="font-bold text-red-500 uppercase">This cannot be undone.</span>
+            </p>
+
+            <div class="mb-8">
+                <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 text-left">
+                    Type <span class="text-black">{{ currentHandle }}</span> to confirm
+                </label>
+                <input 
+                    v-model="deleteHandleConfirm"
+                    :placeholder="currentHandle"
+                    class="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-red-500 outline-none font-bold transition-all text-center"
+                />
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button 
+                    @click="handleDeleteAccount"
+                    :disabled="deleteHandleConfirm !== currentHandle || isDeleting"
+                    class="w-full py-4 bg-red-500 text-white rounded-2xl font-black flex items-center justify-center gap-2 disabled:opacity-20 transition-all active:scale-95"
+                >
+                    <Loader2 v-if="isDeleting" class="w-5 h-5 animate-spin" />
+                    Delete Everything
+                </button>
+                <button 
+                    @click="showDeleteConfirm = false"
+                    :disabled="isDeleting"
+                    class="w-full py-3 text-gray-400 font-bold hover:text-black transition-colors"
+                >
+                    Cancel
                 </button>
             </div>
         </div>

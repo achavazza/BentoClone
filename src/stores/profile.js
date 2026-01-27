@@ -521,6 +521,53 @@ export const useProfileStore = defineStore('profile', () => {
         return null;
     }
 
+    async function deleteAccount() {
+        if (!user.value || !profile.value) return { success: false, error: 'Not logged in' }
+
+        try {
+            const userId = user.value.id
+
+            // 1. Delete Storage Files (using a list and delete approach)
+            // Note: We need to list all files in the user's directory first
+            const { data: files } = await supabase.storage.from('user-content').list(userId, { recursive: true })
+            if (files && files.length > 0) {
+                const pathsToDelete = files.map(f => `${userId}/${f.name}`)
+                // Also need to handle subdirectories if recursive list didn't flatten them (Supabase list isn't natively deep-recursive in all versions)
+                // For this project, we know the structure: userId/avatar/ and userId/widgets/
+                const { data: avatarFiles } = await supabase.storage.from('user-content').list(`${userId}/avatar`)
+                const { data: widgetFiles } = await supabase.storage.from('user-content').list(`${userId}/widgets`)
+
+                const allPaths = []
+                avatarFiles?.forEach(f => allPaths.push(`${userId}/avatar/${f.name}`))
+                widgetFiles?.forEach(f => allPaths.push(`${userId}/widgets/${f.name}`))
+
+                if (allPaths.length > 0) {
+                    await supabase.storage.from('user-content').remove(allPaths)
+                }
+            }
+
+            // 2. Delete Database Records
+            // Order matters if there are foreign keys, but usually Supabase uses CASCADE if set.
+            // If not, we do it manually.
+            await supabase.from('widgets').delete().eq('user_id', userId)
+            await supabase.from('analytics').delete().eq('profile_id', userId)
+            await supabase.from('daily_stats').delete().eq('profile_id', userId)
+
+            // Finally delete the profile
+            const { error: profileError } = await supabase.from('profiles').delete().eq('id', userId)
+
+            if (profileError) throw profileError
+
+            // 3. Sign Out
+            await signOut()
+
+            return { success: true }
+        } catch (error) {
+            console.error('Error deleting account:', error)
+            return { success: false, error: error.message }
+        }
+    }
+
     return {
         user,
         profile,
@@ -545,6 +592,7 @@ export const useProfileStore = defineStore('profile', () => {
         uploadAvatar,
         uploadWidgetImage,
         fetchTotalVisits,
-        fetchAnalyticsData
+        fetchAnalyticsData,
+        deleteAccount
     }
 })

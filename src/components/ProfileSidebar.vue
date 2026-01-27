@@ -114,7 +114,7 @@ function updateField(field, event) {
        <!-- Minimalist Footer Links -->
         
         <!-- Main Actions -->
-        <div class="flex gap-2 justify-center md:justify-start flex-wrap">
+        <div class="flex gap-2 items-center justify-center md:justify-start flex-wrap">
             <button 
                 v-if="isOwner" 
                 @click="$emit('open-analytics')" 
@@ -128,7 +128,7 @@ function updateField(field, event) {
                 <Share2 class="w-4 h-4 mr-1" />
                 Share
             </button>
-
+            <div class="mx-1 border-l border-gray-200 h-4"></div>
             <button 
               v-if="user"
               @click="$emit('logout')"
@@ -138,10 +138,13 @@ function updateField(field, event) {
             </button>
             
             <div v-if="!user" class="flex items-center gap-2">
-                <div class="mx-1 border-l border-gray-200 h-4"></div>
-                <button @click="$emit('login')" class="text-xs font-bold text-black border-2 border-black/5 px-4 py-2 rounded-xl hover:bg-black hover:text-white transition-all">
-                    Login
-                </button>
+              <button @click="$emit('login')" class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
+                Login
+              </button>
+              <div class="mx-1 border-l border-gray-200 h-4"></div>
+                <router-link to="/" class="text-xs font-bold text-gray-500 p-2 rounded-md hover:bg-gray-100/50 hover:text-black transition-colors flex items-center gap-1">
+                    Claim yours
+                </router-link>
             </div>
         </div>
 
