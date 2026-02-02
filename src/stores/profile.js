@@ -391,22 +391,31 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     async function fetchAnalyticsData(profileId) {
-        const today = new Date().toISOString().split('T')[0]
+        // Fix: Hybrid approach for Local "Today" stats vs UTC "Total" stats
+        const now = new Date();
+        const localMidnight = new Date(now);
+        localMidnight.setHours(0, 0, 0, 0);
 
-        // 1. Get historical aggregated stats (all time up to yesterday)
+        const utcNow = new Date();
+        const utcMidnight = new Date(Date.UTC(utcNow.getUTCFullYear(), utcNow.getUTCMonth(), utcNow.getUTCDate()));
+
+        // Fetch overlap of data (whichever is earlier) to serve both needs
+        const queryDate = localMidnight < utcMidnight ? localMidnight.toISOString() : utcMidnight.toISOString();
+
+        // 1. Get historical aggregated stats (all time up to yesterday UTC)
         const { data: historicalData } = await supabase
             .from('daily_stats')
             .select('visit_count, click_count')
             .eq('profile_id', profileId)
 
-        // 2. Get today's logs (real-time)
-        const { data: todayLogs } = await supabase
+        // 2. Get recent raw logs
+        const { data: recentLogs } = await supabase
             .from('analytics')
             .select('*')
             .eq('profile_id', profileId)
-            .gte('created_at', today)
+            .gte('created_at', queryDate)
 
-        // 3. Get recent logs (all time, latest 1000 for details)
+        // 3. Get latest 1000 for "Recent Activity" list
         const { data: allLogs } = await supabase
             .from('analytics')
             .select('*')
@@ -414,23 +423,33 @@ export const useProfileStore = defineStore('profile', () => {
             .order('created_at', { ascending: false })
             .limit(1000)
 
-        // Aggregate historical entries
+        // Aggregate historical entries (UTC)
         const historical = {
             visits: historicalData?.reduce((s, r) => s + (r.visit_count || 0), 0) || 0,
             clicks: historicalData?.reduce((s, r) => s + (r.click_count || 0), 0) || 0
         }
 
-        // Aggregate today's entries from logs
+        // Separate Logs for Logic
+        const utcLogs = recentLogs?.filter(l => new Date(l.created_at) >= utcMidnight) || [];
+        const localLogs = recentLogs?.filter(l => new Date(l.created_at) >= localMidnight) || [];
+
+        // Aggregate Today's entries (Using Local Time for UI)
         const todayStats = {
-            visits: todayLogs?.filter(e => e.event_type === 'visit').length || 0,
-            clicks: todayLogs?.filter(e => e.event_type === 'click').length || 0,
-            unique: new Set(todayLogs?.filter(e => e.event_type === 'visit' && e.visitor_id).map(e => e.visitor_id)).size
+            visits: localLogs.filter(e => e.event_type === 'visit').length,
+            clicks: localLogs.filter(e => e.event_type === 'click').length,
+            unique: new Set(localLogs.filter(e => e.event_type === 'visit' && e.visitor_id).map(e => e.visitor_id)).size
+        }
+
+        // Aggregate Current UTC (for Totals)
+        const currentUtcStats = {
+            visits: utcLogs.filter(e => e.event_type === 'visit').length,
+            clicks: utcLogs.filter(e => e.event_type === 'click').length,
         }
 
         // Prepare full stats object
         const stats = {
-            totalVisits: historical.visits + todayStats.visits,
-            totalClicks: historical.clicks + todayStats.clicks,
+            totalVisits: historical.visits + currentUtcStats.visits,
+            totalClicks: historical.clicks + currentUtcStats.clicks,
             uniqueVisitors: 0, // Will be set below
             today: todayStats,
             recent: allLogs?.slice(0, 15).map(e => {

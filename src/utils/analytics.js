@@ -10,6 +10,7 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
 
     // Skip tracking if the visitor is the owner of the profile
     if (visitor_user_id === profile_id) {
+        console.debug('Analytics: Skipping visit (User is owner)');
         return;
     }
 
@@ -17,6 +18,7 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
     try {
         const navEntries = performance.getEntriesByType('navigation');
         if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+            console.debug('Analytics: Skipping visit (Page reload)');
             return;
         }
     } catch (e) {
@@ -28,6 +30,7 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
         try {
             const referrerHost = new URL(document.referrer).host;
             if (referrerHost === window.location.host) {
+                console.debug('Analytics: Skipping visit (Internal navigation)');
                 return;
             }
         } catch (e) {
@@ -49,7 +52,8 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
         const now = Date.now();
 
         if (lastTracked && (now - parseInt(lastTracked)) < (60 * 60 * 1000)) {
-            return; // Ya registrado recientemente
+            console.debug(`Analytics: Skipping ${event_type} (Debounced for 1h)`);
+            return;
         }
 
         // 3. Obtener Geolocalización (API Gratuita)
@@ -61,7 +65,7 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
                 country = geoData.country_name || 'Unknown';
             }
         } catch (geoError) {
-            // Falla de red o bloqueo de adblocker: manejado silenciosamente
+            console.warn('Analytics: Geo lookup failed', geoError);
         }
 
         // 4. Procesar UA y Referrer
@@ -94,8 +98,11 @@ export const trackEvent = async ({ profile_id, event_type, widget_id = null, wid
 
         if (!error) {
             localStorage.setItem(storageKey, now.toString());
+            console.info(`Analytics: Event tracked successfully (${event_type})`);
+        } else {
+            console.error('Analytics: Supabase insertion failed', error);
         }
     } catch (e) {
-        console.error('Analytics tracking failed:', e);
+        console.error('Analytics: Tracking failed unexpectedly', e);
     }
 };
