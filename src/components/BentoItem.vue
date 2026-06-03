@@ -116,7 +116,7 @@ const showDescription = computed(() => {
         <!-- Content Rendering -->
         <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
           <template v-if="item.icon">
-            <img v-if="item.icon.startsWith('http')" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" />
+            <img v-if="item.icon.startsWith('http') || item.icon.startsWith('data:')" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" />
             <i v-else :class="[item.icon, 'text-4xl']"></i>
           </template>
           <div class="flex flex-col min-w-0">

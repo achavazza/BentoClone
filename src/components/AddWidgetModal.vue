@@ -26,7 +26,7 @@ const uploadError = ref('');
 
 const faviconPreview = computed(() => {
     if (customFavicon.value) return customFavicon.value;
-    if (selectedIcon.value && selectedIcon.value.startsWith('http')) return selectedIcon.value;
+    if (selectedIcon.value && (selectedIcon.value.startsWith('http') || selectedIcon.value.startsWith('data:'))) return selectedIcon.value;
     return null;
 });
 
