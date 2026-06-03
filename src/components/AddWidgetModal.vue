@@ -30,7 +30,7 @@ function getAutoFavicon(inputUrl) {
     try {
         const parsed = new URL(inputUrl);
         if (parsed.hostname) {
-            return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=48`;
+            return `https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`;
         }
     } catch (e) {}
     return null;

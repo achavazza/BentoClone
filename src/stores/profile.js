@@ -511,7 +511,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         // 2. Special Rule: Notion (google favicon service fails on notion.site)
         if (w.content && (w.content.includes('notion.site') || w.content.includes('notion.so'))) {
-            return 'https://www.google.com/s2/favicons?domain=notion.com&sz=48';
+            return 'https://icons.duckduckgo.com/ip3/notion.com.ico';
         }
 
         if (w.type !== 'social' && w.type !== 'image') return null;
@@ -531,7 +531,7 @@ export const useProfileStore = defineStore('profile', () => {
         if (w.content && w.content.startsWith('http')) {
             try {
                 const url = new URL(w.content);
-                return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=48`;
+                return `https://icons.duckduckgo.com/ip3/${url.hostname}.ico`;
             } catch (e) {
                 return null;
             }
