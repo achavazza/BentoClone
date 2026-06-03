@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { X, Upload, Loader2, AlertCircle } from 'lucide-vue-next';
+import { ref, computed, watch } from 'vue';
+import { X, Upload, Loader2, AlertCircle, ImageIcon } from 'lucide-vue-next';
 import { socialIcons } from '../lib/icons';
 import { useProfileStore } from '../stores/profile';
 
@@ -19,8 +19,16 @@ const title = ref('');
 const textContent = ref('');
 const selectedIcon = ref(null);
 const bgColor = ref('#ffffff');
+const description = ref('');
+const customFavicon = ref('');
 const isUploading = ref(false);
 const uploadError = ref('');
+
+const faviconPreview = computed(() => {
+    if (customFavicon.value) return customFavicon.value;
+    if (selectedIcon.value && selectedIcon.value.startsWith('http')) return selectedIcon.value;
+    return null;
+});
 
 const socialOptions = [
   { name: 'Instagram', icon: socialIcons['Instagram'], bg: '#FCE7F3' },
@@ -44,6 +52,8 @@ watch(() => props.isOpen, (newVal) => {
         url.value = w.content || '';
         title.value = w.title || '';
         textContent.value = w.content || '';
+        description.value = w.description || '';
+        customFavicon.value = '';
         bgColor.value = w.bgColor || '#ffffff';
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
@@ -53,6 +63,8 @@ watch(() => props.isOpen, (newVal) => {
          url.value = '';
          title.value = '';
          textContent.value = '';
+         description.value = '';
+         customFavicon.value = '';
          selectedIcon.value = null;
          bgColor.value = '#ffffff';
          activeTab.value = 'social';
@@ -97,10 +109,12 @@ function handleSubmit() {
         size: size.value
     };
 
+    widget.description = description.value || '';
+
     if (activeTab.value === 'social') {
         widget.title = title.value || 'Link';
         widget.content = url.value;
-        widget.icon = selectedIcon.value;
+        widget.icon = customFavicon.value || selectedIcon.value;
     } else if (activeTab.value === 'text') {
         widget.title = title.value;
         widget.content = textContent.value;
@@ -217,6 +231,23 @@ function handleDelete() {
                 </div>
                 <div v-else>
                     <input v-model="url" type="url" placeholder="Link URL..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
+
+                    <!-- Custom Favicon -->
+                    <div class="flex items-center gap-3 mt-3">
+                        <div v-if="faviconPreview" class="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+                            <img :src="faviconPreview" class="w-full h-full object-contain" @error="customFavicon = ''" />
+                        </div>
+                        <div v-else class="w-10 h-10 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
+                            <ImageIcon class="w-4 h-4 text-gray-400" />
+                        </div>
+                        <input v-model="customFavicon" type="url" placeholder="Custom favicon URL (optional)..." class="flex-1 p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Description</label>
+                    <textarea v-model="description" rows="2" placeholder="A short description..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none resize-none font-medium text-sm"></textarea>
                 </div>
 
                 <!-- Extended Details -->

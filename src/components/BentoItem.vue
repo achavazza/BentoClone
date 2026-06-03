@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { X, GripVertical, Pencil } from 'lucide-vue-next';
+import { GripVertical, Pencil } from 'lucide-vue-next';
 
 const props = defineProps({
   item: {
@@ -32,19 +32,49 @@ const bgStyle = computed(() => {
     return props.item.bgColor ? { backgroundColor: props.item.bgColor } : {};
 });
 
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+function getLuminance(r, g, b) {
+  const [rs, gs, bs] = [r, g, b].map(v => {
+    v = v / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+const useLightText = computed(() => {
+    if (!props.item.bgColor || props.item.bgColor === '#ffffff') return false;
+    const rgb = hexToRgb(props.item.bgColor);
+    if (!rgb) return false;
+    return getLuminance(rgb.r, rgb.g, rgb.b) < 0.4;
+});
+
+const textPrimaryClass = computed(() => useLightText.value ? 'text-white' : 'text-gray-900');
+const textSecondaryClass = computed(() => useLightText.value ? 'text-white/70' : 'text-gray-500');
+const textMutedClass = computed(() => useLightText.value ? 'text-white/50' : 'text-gray-400');
+
 const socialHandle = computed(() => {
     if (props.item.type !== 'social' || !props.item.content) return null;
     try {
-        let url = props.item.content.replace(/\/$/, ""); // Remove trailing slash
+        let url = props.item.content.replace(/\/$/, "");
         const parts = url.split('/');
         let handle = parts[parts.length - 1];
-        
-        // Handle optional "in" for LinkedIn if needed, but last part usually works
         if (handle) return `@${handle}`;
     } catch (e) {
         return null;
     }
     return null;
+});
+
+const showDescription = computed(() => {
+    return props.item.description && props.item.size !== '1x1';
 });
 </script>
 
@@ -65,7 +95,8 @@ const socialHandle = computed(() => {
 
     <!-- Drag Handle (visible only when sorting/owner) -->
     <div v-if="sorting && item.type !== 'placeholder'" 
-    class="absolute top-4 left-4 rounded-md p-2 text-gray-400 hover:text-blue-500 bg-white/100  transition-colors cursor-move z-10">
+    class="absolute top-4 left-4 rounded-md p-2 hover:text-blue-500 bg-white/80 backdrop-blur-sm transition-colors cursor-move z-10"
+    :class="useLightText ? 'text-white/70' : 'text-gray-400'">
       <GripVertical class="w-4 h-4" />
     </div>
 
@@ -73,7 +104,8 @@ const socialHandle = computed(() => {
     <button 
       v-if="sorting && item.type !== 'placeholder'" 
       @click.stop="$emit('edit', item)" 
-      class="absolute top-4 right-4 rounded-md p-2 text-gray-400 hover:text-blue-500 bg-white/100 transition-colors z-10"
+      class="absolute top-4 right-4 rounded-md p-2 hover:text-blue-500 bg-white/80 backdrop-blur-sm transition-colors z-10"
+      :class="useLightText ? 'text-white/70' : 'text-gray-400'"
     >
       <Pencil class="w-4 h-4" />
     </button>
@@ -87,9 +119,10 @@ const socialHandle = computed(() => {
             <img v-if="item.icon.startsWith('http')" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" />
             <i v-else :class="[item.icon, 'text-4xl']"></i>
           </template>
-          <div class="flex flex-col">
-            <span class="font-semibold text-gray-900 leading-tight mb-1">{{ item.title }}</span>
-            <span v-if="socialHandle" class="text-xs text-gray-400 font-medium mix-blend-multiply">{{ socialHandle }}</span>
+          <div class="flex flex-col min-w-0">
+            <span class="font-semibold leading-tight mb-1 truncate" :class="textPrimaryClass">{{ item.title }}</span>
+            <span v-if="socialHandle" class="text-xs font-medium" :class="textMutedClass">{{ socialHandle }}</span>
+            <p v-if="showDescription" class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="textSecondaryClass">{{ item.description }}</p>
           </div>
         </div>
 
@@ -105,8 +138,9 @@ const socialHandle = computed(() => {
         </div>
 
         <div v-else-if="item.type === 'text'" class="flex flex-col h-full w-full">
-          <span v-if="item.title" class="font-bold text-gray-900 leading-tight mb-2">{{ item.title }}</span>
-          <p class="font-medium text-gray-500 text-sm line-clamp-3 leading-relaxed">{{ item.content }}</p>
+          <span v-if="item.title" class="font-bold leading-tight mb-2" :class="textPrimaryClass">{{ item.title }}</span>
+          <p class="font-medium text-sm line-clamp-3 leading-relaxed" :class="textSecondaryClass">{{ item.content }}</p>
+          <p v-if="showDescription" class="text-xs mt-2 leading-relaxed line-clamp-2" :class="textMutedClass">{{ item.description }}</p>
         </div>
         
         <div v-else-if="item.type === 'placeholder'" class="text-gray-400 flex flex-col items-center w-full">

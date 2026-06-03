@@ -20,6 +20,7 @@ create table widgets (
   size text default '1x1',
   position integer,
   "bgColor" text default '#ffffff',
+  description text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
