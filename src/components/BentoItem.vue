@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { GripVertical, Pencil } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -18,6 +18,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['edit', 'click']);
+
+const iconFailed = ref(false);
+
+const isUrlIcon = computed(() => {
+    return props.item.icon && (props.item.icon.startsWith('http') || props.item.icon.startsWith('data:'));
+});
+
+const iconInitial = computed(() => {
+    if (props.item.title && props.item.title.length > 0) return props.item.title[0].toUpperCase();
+    return null;
+});
 
 const sizeClasses = computed(() => {
   switch (props.item.size) {
@@ -63,14 +74,15 @@ const textMutedClass = computed(() => useLightText.value ? 'text-white/50' : 'te
 const socialHandle = computed(() => {
     if (props.item.type !== 'social' || !props.item.content) return null;
     try {
-        let url = props.item.content.replace(/\/$/, "");
-        const parts = url.split('/');
-        let handle = parts[parts.length - 1];
-        if (handle) return `@${handle}`;
+        const parsed = new URL(props.item.content);
+        const pathParts = parsed.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+        if (pathParts.length > 0) {
+            return `@${pathParts[pathParts.length - 1]}`;
+        }
+        return parsed.hostname;
     } catch (e) {
         return null;
     }
-    return null;
 });
 
 const showDescription = computed(() => {
@@ -116,8 +128,9 @@ const showDescription = computed(() => {
         <!-- Content Rendering -->
         <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
           <template v-if="item.icon">
-            <img v-if="item.icon.startsWith('http') || item.icon.startsWith('data:')" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" />
-            <i v-else :class="[item.icon, 'text-4xl']"></i>
+            <img v-if="isUrlIcon && !iconFailed" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" @error="iconFailed = true" />
+            <div v-else-if="isUrlIcon && iconFailed && iconInitial" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" :class="textPrimaryClass" :style="{ backgroundColor: useLightText ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.06)' }">{{ iconInitial }}</div>
+            <i v-else-if="!isUrlIcon" :class="[item.icon, 'text-4xl']"></i>
           </template>
           <div class="flex flex-col min-w-0">
             <span class="font-semibold leading-tight mb-1 truncate" :class="textPrimaryClass">{{ item.title }}</span>

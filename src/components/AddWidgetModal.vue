@@ -21,12 +21,25 @@ const selectedIcon = ref(null);
 const bgColor = ref('#ffffff');
 const description = ref('');
 const customFavicon = ref('');
+const autoFaviconFailed = ref(false);
 const isUploading = ref(false);
 const uploadError = ref('');
+
+function getAutoFavicon(inputUrl) {
+    if (!inputUrl || !inputUrl.startsWith('http')) return null;
+    try {
+        const parsed = new URL(inputUrl);
+        if (parsed.hostname) {
+            return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=48`;
+        }
+    } catch (e) {}
+    return null;
+}
 
 const faviconPreview = computed(() => {
     if (customFavicon.value) return customFavicon.value;
     if (selectedIcon.value && (selectedIcon.value.startsWith('http') || selectedIcon.value.startsWith('data:'))) return selectedIcon.value;
+    if (url.value && activeTab.value === 'social' && !autoFaviconFailed.value) return getAutoFavicon(url.value);
     return null;
 });
 
@@ -73,6 +86,10 @@ watch(() => props.isOpen, (newVal) => {
     }
 });
 
+watch(url, () => {
+    autoFaviconFailed.value = false;
+});
+
 function selectSocial(opt) {
     selectedIcon.value = opt.icon;
     title.value = opt.name;
@@ -114,7 +131,7 @@ function handleSubmit() {
     if (activeTab.value === 'social') {
         widget.title = title.value || 'Link';
         widget.content = url.value;
-        widget.icon = customFavicon.value || selectedIcon.value;
+        widget.icon = customFavicon.value || selectedIcon.value || getAutoFavicon(url.value);
     } else if (activeTab.value === 'text') {
         widget.title = title.value;
         widget.content = textContent.value;
@@ -235,7 +252,7 @@ function handleDelete() {
                     <!-- Custom Favicon -->
                     <div class="flex items-center gap-3 mt-3">
                         <div v-if="faviconPreview" class="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
-                            <img :src="faviconPreview" class="w-full h-full object-contain" @error="customFavicon = ''" />
+                            <img :src="faviconPreview" class="w-full h-full object-contain" @error="autoFaviconFailed = true" />
                         </div>
                         <div v-else class="w-10 h-10 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
                             <ImageIcon class="w-4 h-4 text-gray-400" />
