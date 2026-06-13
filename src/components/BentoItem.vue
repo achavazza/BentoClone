@@ -134,7 +134,7 @@ const showDescription = computed(() => {
           </template>
           <div class="flex flex-col min-w-0">
             <span class="font-semibold leading-tight mb-1 truncate" :class="textPrimaryClass">{{ item.title }}</span>
-            <span v-if="socialHandle" class="text-xs font-medium" :class="textMutedClass">{{ socialHandle }}</span>
+            <span v-if="socialHandle" class="text-xs font-medium truncate" :class="textMutedClass">{{ socialHandle }}</span>
             <p v-if="showDescription" class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="textSecondaryClass">{{ item.description }}</p>
           </div>
         </div>
@@ -151,7 +151,7 @@ const showDescription = computed(() => {
         </div>
 
         <div v-else-if="item.type === 'text'" class="flex flex-col h-full w-full">
-          <span v-if="item.title" class="font-bold leading-tight mb-2" :class="textPrimaryClass">{{ item.title }}</span>
+          <span v-if="item.title" class="font-bold leading-tight mb-2 truncate" :class="textPrimaryClass">{{ item.title }}</span>
           <p class="font-medium text-sm line-clamp-3 leading-relaxed" :class="textSecondaryClass">{{ item.content }}</p>
           <p v-if="showDescription" class="text-xs mt-2 leading-relaxed line-clamp-2" :class="textMutedClass">{{ item.description }}</p>
         </div>

@@ -41,7 +41,7 @@ function getSpanClasses(size) {
     <draggable 
       v-model="gridItems" 
       item-key="id"
-      class="grid grid-cols-[repeat(auto-fit,175px)] gap-5 md:gap-10 auto-rows-[175px] w-fit max-w-full grid-auto-flow-dense justify-center"
+      class="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,175px)] gap-3 md:gap-10 auto-rows-[165px] md:auto-rows-[175px] w-full md:w-fit max-w-full grid-auto-flow-dense justify-center"
       handle=".cursor-move"
       :disabled="!sorting"
       ghost-class="ghost"
