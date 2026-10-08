@@ -24,6 +24,7 @@ const customFavicon = ref('');
 const autoFaviconFailed = ref(false);
 const isUploading = ref(false);
 const uploadError = ref('');
+const urlError = ref('');
 
 function getAutoFavicon(inputUrl) {
     if (!inputUrl || !inputUrl.startsWith('http')) return null;
@@ -119,6 +120,13 @@ async function handleFileUpload(event) {
 
 function handleSubmit() {
     if (isUploading.value) return;
+
+    urlError.value = '';
+
+    if ((activeTab.value === 'social' || activeTab.value === 'image') && !/^https?:\/\//i.test(url.value)) {
+        urlError.value = 'Please enter a valid URL starting with http:// or https://';
+        return;
+    }
 
     let widget = {
         type: activeTab.value,
@@ -313,6 +321,7 @@ function handleDelete() {
             </div>
 
             <div class="flex flex-col gap-3 pt-4 pb-2">
+                <p v-if="urlError" class="text-red-500 text-xs font-bold">{{ urlError }}</p>
                 <button @click="handleSubmit" :disabled="isUploading" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span v-if="isUploading" class="flex items-center justify-center gap-2">
                         <Loader2 class="w-5 h-5 animate-spin" />

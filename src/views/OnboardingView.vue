@@ -17,7 +17,7 @@ const errorMsg = ref('')
 onMounted(() => {
     store.initAuth()
     if (!store.user) {
-        router.push('/')
+        router.push('/login')
     } else if (store.profile && !store.profile.username.includes('user_')) {
         // Already has a set handle? Redirect to it? 
         // Or maybe they want to change it?

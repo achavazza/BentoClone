@@ -25,6 +25,11 @@ const isUrlIcon = computed(() => {
     return props.item.icon && (props.item.icon.startsWith('http') || props.item.icon.startsWith('data:'));
 });
 
+const safeHref = computed(() => {
+    if (!props.item.content) return null;
+    return /^https?:\/\//i.test(props.item.content) ? props.item.content : null;
+});
+
 const iconInitial = computed(() => {
     if (props.item.title && props.item.title.length > 0) return props.item.title[0].toUpperCase();
     return null;
@@ -99,9 +104,10 @@ const showDescription = computed(() => {
   >
     <!-- Social/Image Link Wrapper -->
     <a 
-      v-if="item.content && item.type !== 'text' && item.type !== 'image' && item.type !== 'placeholder'" 
-      :href="item.content" 
+      v-if="safeHref && item.type !== 'text' && item.type !== 'image' && item.type !== 'placeholder'" 
+      :href="safeHref" 
       target="_blank" 
+      rel="noopener noreferrer nofollow"
       class="absolute inset-0 z-0"
     ></a>
 

@@ -528,7 +528,7 @@ export const useProfileStore = defineStore('profile', () => {
         if (knownSocialKey) return socialIcons[knownSocialKey];
 
         // 4. Generic Favicon
-        if (w.content && w.content.startsWith('http')) {
+        if (w.content && /^https?:\/\//i.test(w.content)) {
             try {
                 const url = new URL(w.content);
                 return `https://icons.duckduckgo.com/ip3/${url.hostname}.ico`;

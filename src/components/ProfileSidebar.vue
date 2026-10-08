@@ -148,6 +148,14 @@ function updateField(field, event) {
             </div>
         </div>
 
+        <!-- Context footer: identifies the host for visitors and crawlers -->
+        <p class="mt-3 text-[11px] text-gray-400 font-medium text-center md:text-left">
+            This profile is hosted on
+            <router-link to="/" class="underline hover:text-black transition-colors">bento.clone</router-link>
+            &middot;
+            <router-link to="/" class="underline hover:text-black transition-colors">Report abuse</router-link>
+        </p>
+
        
     </div>
   </div>
