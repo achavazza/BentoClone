@@ -3,6 +3,7 @@ import { RouterView, useRouter, useRoute } from 'vue-router'
 import { watch, onMounted } from 'vue'
 import { useProfileStore } from './stores/profile'
 import { supabase } from './lib/supabase'
+import { Analytics } from '@vercel/analytics/vue'
 
 const store = useProfileStore()
 const router = useRouter()
@@ -36,4 +37,5 @@ watch(() => store.user, async (newUser, oldUser) => {
 
 <template>
   <RouterView />
+  <Analytics />
 </template>
