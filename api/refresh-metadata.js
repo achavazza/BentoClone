@@ -143,20 +143,40 @@ async function fetchOembed(service, url) {
 }
 
 async function fetchBehance(url) {
-  // Microlink free tier, no account: https://api.microlink.io (25 req/day)
-  const data = await getJson(`https://api.microlink.io/?url=${encodeURIComponent(url)}`)
-  const d = data?.data || {}
-  const pick = (v) => (v && typeof v === 'object' ? (v.value ?? v.url ?? null) : v ?? null)
-  const img = d.image && typeof d.image === 'object' ? (d.image.url ?? d.image.value ?? null) : d.image ?? null
-  const logo = pick(d.logo)
+  // Fetch the profile page directly: it exposes a real og:image cover.
+  // Microlink (rate-limited to 25/day) returns a data: placeholder instead.
+  const res = await fetch(url, {
+    headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+    redirect: 'follow'
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status} from behance.net`)
+  const html = (await res.text()).slice(0, 200_000)
+
+  const title = getMeta(html, ['og:title', 'twitter:title'])
+    || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim()
+    || null
+  const description = getMeta(html, ['og:description', 'twitter:description', 'description'])
+  let image = getMeta(html, ['og:image', 'twitter:image'])
+  if (image) {
+    try { image = new URL(image, res.url).href } catch { /* keep as-is */ }
+  }
+  // Fallback: the profile avatar is a usable square cover.
+  let slug = ''
+  try { slug = new URL(res.url).pathname.split('/').filter(Boolean).pop() || '' } catch { }
+  if (!isRemoteUrl(image) && slug) image = `https://unavatar.io/behance/${slug}`
+
+  let favicon = getLinkIcon(html)
+  if (favicon) {
+    try { favicon = new URL(favicon, res.url).href } catch { /* keep as-is */ }
+  }
+
   return {
-    title: pick(d.title),
-    description: pick(d.description),
-    // Microlink returns a data:-URI placeholder when there's no cover art;
-    // only real remote images are usable.
-    image_url: isRemoteUrl(img) ? img : null,
-    favicon_url: isRemoteUrl(logo) ? logo : faviconFor(url),
-    raw_metadata: { status: data.status, data: d }
+    title: title || 'Behance',
+    description: description || null,
+    image_url: isRemoteUrl(image) ? image : null,
+    favicon_url: favicon || faviconFor(res.url),
+    raw_metadata: { final_url: res.url }
   }
 }
 
