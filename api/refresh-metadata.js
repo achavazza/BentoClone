@@ -143,10 +143,11 @@ async function fetchOembed(service, url) {
 }
 
 async function fetchBehance(url) {
-  // Two sources, both official:
-  //  1. profile <link rel="alternate" type="application/rss+xml"> → only the
-  //     user's own projects; the latest one's cover is the background.
-  //  2. profile og:image as fallback, then the avatar.
+  // Behance embeds the user's OWN work grid as /gallery/<id>/ links. Each
+  // project cover carries that gallery id inside its filename
+  // (e.g. projects/max_808/<hex><id>.Y3Jvc...). Matching by id avoids
+  // recommended/featured content from other users. We use the first
+  // (featured) project's cover.
   const res = await fetch(url, {
     headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
     signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -159,31 +160,28 @@ async function fetchBehance(url) {
     || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim()
     || null
   const description = getMeta(html, ['og:description', 'twitter:description', 'description'])
-  let projectTitle = null
 
   let image = null
-  const rssHref = html.match(/<link[^>]*rel=["']alternate["'][^>]*type=["']application\/rss\+xml["'][^>]*href=["']([^"']+)["']/i)?.[1]
-  if (rssHref) {
-    try {
-      const rssRes = await fetch(rssHref, {
-        headers: { 'User-Agent': UA },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-        redirect: 'follow'
-      })
-      if (rssRes.ok) {
-        const xml = await rssRes.text()
-        const item = xml.match(/<item>([\s\S]*?)<\/item>/)?.[1]
-        if (item) {
-          const strip = (s) => String(s || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim()
-          const cover = item.match(/<img[^>]*src=["']([^"']+)["']/i)?.[1]
-          if (cover && /^https?:\/\//i.test(cover)) {
-            // RSS covers are 404px; the CDN serves the same file bigger.
-            image = cover.replace('/projects/404/', '/projects/max_808/')
-          }
-          projectTitle = strip(item.match(/<title>([\s\S]*?)<\/title>/)?.[1])
-        }
-      }
-    } catch { /* RSS is optional */ }
+  let projectTitle = null
+  const firstWork = html.match(/<a[^>]*href=["']\/gallery\/(\d+)\/[^"']*["']/)
+  const firstId = firstWork?.[1]
+  if (firstId) {
+    const slug = firstWork[2]?.replace(/[-_]/g, ' ')?.trim()
+    if (slug) projectTitle = slug
+    const rank = { '1400': 6, fs: 5, max_808: 4, 808: 3, 404: 2, 230: 1, '115_webp': 0, 115: 0 }
+    let best = null
+    let bestRank = -1
+    const coverRe = /https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/((?:max_808|808|1400|fs|404|230|115(?:_webp)?))\/[^"'\s)<>\\]+/g
+    for (const m of html.matchAll(coverRe)) {
+      const file = m[0].split('/').pop()
+      const id = file.split('.')[0].match(/(\d{6,})$/)?.[1]
+      if (id !== firstId) continue
+      const r = rank[m[1]] ?? -1
+      if (r > bestRank) { best = m[0]; bestRank = r }
+    }
+    if (best) {
+      image = best.replace(/\/projects\/(?:115_webp|115|404|230|808)\//, '/projects/max_808/')
+    }
   }
 
   if (!/^https?:\/\//i.test(image || '')) {
@@ -203,11 +201,11 @@ async function fetchBehance(url) {
   }
 
   return {
-    title: title || projectTitle || 'Behance',
+    title: title || 'Behance',
     description: description || (projectTitle ? `Latest project: ${projectTitle}` : null),
     image_url: /^https?:\/\//i.test(image || '') ? image : null,
     favicon_url: favicon || faviconFor(res.url),
-    raw_metadata: { final_url: res.url }
+    raw_metadata: { final_url: res.url, gallery_id: firstId }
   }
 }
 
