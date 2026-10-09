@@ -140,11 +140,11 @@ function onImageLoad(e) {
         <div v-else-if="isUrlIcon && iconFailed && iconInitial" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" :class="titleClass" :style="{ backgroundColor: isLightBg ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)' }">{{ iconInitial }}</div>
         <i v-else-if="!isUrlIcon" :class="[item.icon, 'text-4xl']"></i>
       </template>
-      <div class="flex flex-col min-w-0">
-        <span class="font-semibold leading-tight mb-1 line-clamp-2" :class="titleClass">
+      <div class="flex flex-col min-w-0 max-w-full overflow-hidden">
+        <span class="font-semibold leading-tight mb-1 line-clamp-2 max-w-full" :class="titleClass">
           {{ item.title || item.preview?.title }}
         </span>
-        <span v-if="socialHandle" class="text-xs font-medium truncate" :class="subClass">{{ socialHandle }}</span>
+        <span v-if="socialHandle" class="text-xs font-medium truncate max-w-full" :class="subClass">{{ socialHandle }}</span>
         <p
           v-if="(item.description || item.preview?.description) && item.size !== '1x1'"
           class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="subClass"
