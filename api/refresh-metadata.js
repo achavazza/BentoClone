@@ -4,10 +4,14 @@ import { createClient } from '@supabase/supabase-js'
 //   SUPABASE_URL                = https://<project>.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY   = service_role key (Supabase > Settings > API)
 //   CRON_SECRET                 = random string you generate
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+function getSupabase() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('missing env vars: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+  }
+  return createClient(url, key)
+}
 
 const UA = 'Mozilla/5.0 (compatible; BentoPreviewBot/1.0; +link-preview)'
 const TIMEOUT_MS = 6000
@@ -276,6 +280,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const supabase = getSupabase()
     const { total, rows, failures } = await collectPreviews(supabase)
 
     if (rows.length) {
