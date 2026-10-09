@@ -189,11 +189,15 @@ async function fetchGeneric(url) {
   if (image) {
     try { image = new URL(image, res.url).href } catch { /* keep as-is */ }
   }
+  let favicon = getLinkIcon(html)
+  if (favicon) {
+    try { favicon = new URL(favicon, res.url).href } catch { /* keep as-is */ }
+  }
   return {
     title: title || null,
     description: description || null,
     image_url: image || null,
-    favicon_url: faviconFor(res.url),
+    favicon_url: favicon || faviconFor(res.url),
     raw_metadata: { final_url: res.url }
   }
 }
