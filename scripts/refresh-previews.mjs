@@ -21,29 +21,42 @@ if (fs.existsSync(envPath)) {
     }
 }
 
-const url = process.env.SUPABASE_URL
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-if (!url || !key) {
-    console.error('Falta SUPABASE_SERVICE_ROLE_KEY. Definí la var temporal antes de correr el script.')
+const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+if (!url) {
+    console.error('Falta SUPABASE_URL (se lee de .env, var VITE_SUPABASE_URL). ¿Está el .env en la raíz del proyecto?')
     process.exit(1)
+}
+if (!key) {
+    console.error('Falta SUPABASE_SERVICE_ROLE_KEY en .env. Agenda temporalmente la línea  SUPABASE_SERVICE_ROLE_KEY=sb_secret_...  y corré de nuevo.')
+    process.exit(1)
+}
+// Default for anything imported that expects SUPABASE_URL.
+if (!process.env.SUPABASE_URL) {
+    process.env.SUPABASE_URL = url
 }
 
 const { collectPreviews } = await import('../api/refresh-metadata.js')
 const supabase = createClient(url, key)
 
-const { total, rows, failures } = await collectPreviews(supabase)
+try {
+    const { total, rows, failures } = await collectPreviews(supabase)
 
-if (rows.length) {
-    const { error } = await supabase
-        .from('box_previews')
-        .upsert(rows, { onConflict: 'widget_id' })
-    if (error) {
-        console.error('Upsert falló (¿ya corriste supabase_box_previews.sql?):', error.message)
-        process.exit(1)
+    if (rows.length) {
+        const { error } = await supabase
+            .from('box_previews')
+            .upsert(rows, { onConflict: 'widget_id' })
+        if (error) {
+            console.error('Upsert falló (¿ya corriste supabase_box_previews.sql?):', error.message)
+            process.exit(1)
+        }
     }
-}
 
-console.log(`Previews: total ${total} | actualizados ${rows.length} | fallaron ${failures.length}`)
-for (const f of failures) {
-    console.log(`  FAIL widget ${f.widget_id} (${f.url}): ${f.error}`)
+    console.log(`Previews: total ${total} | actualizados ${rows.length} | fallaron ${failures.length}`)
+    for (const f of failures) {
+        console.log(`  FAIL widget ${f.widget_id} (${f.url}): ${f.error}`)
+    }
+} catch (e) {
+    console.error('Error:', e.message || e)
+    process.exit(1)
 }
