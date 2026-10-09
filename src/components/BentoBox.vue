@@ -117,7 +117,7 @@ function onImageLoad(e) {
           loading="lazy"
           referrerpolicy="no-referrer"
         />
-        <span class="text-[10px] font-semibold uppercase tracking-wide text-white/60 truncate" :class="labelClass">
+        <span class="text-[10px] font-semibold uppercase tracking-wide truncate" :class="labelClass">
           {{ platformLabel }}
         </span>
       </div>
