@@ -97,11 +97,9 @@ watch(() => props.isOpen, (newVal) => {
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
         customBackground.value = w.background_url || '';
-        // A switch ON with no image to show is misleading: stay OFF until
-        // there is a real remote image available.
-        const hasImageNow = /^https?:\/\//i.test(customBackground.value || '')
-            || /^https?:\/\//i.test(props.existingWidget?.preview?.image_url || '');
-        showPreview.value = hasImageNow ? w.show_preview !== false : false;
+        // The stored choice always wins: if the user left it ON it stays ON,
+        // even when the periodic fetch hasn't found an image for this link yet.
+        showPreview.value = w.show_preview !== false;
         faviconOpen.value = false;
         faviconDraft.value = '';
         bgPreviewError.value = false;
@@ -138,9 +136,38 @@ const bgPreviewSrc = computed(() => {
     return p && /^https?:\/\//i.test(p) ? p : null;
 });
 const bgPreviewError = ref(false);
+const isFetchingPreview = ref(false);
+const previewFetchFailed = ref(false);
+
+async function fetchPreviewImage() {
+  const target = url.value.trim();
+  if (!/^https?:\/\//i.test(target)) return;
+  if (bgPreviewSrc.value) return; // already have an image
+  isFetchingPreview.value = true;
+  previewFetchFailed.value = false;
+  try {
+    const r = await fetch(`${location.origin}/api/preview?url=${encodeURIComponent(target)}`);
+    const data = await r.json();
+    if (data && data.found && data.image_url && /^https?:\/\//i.test(data.image_url)) {
+      customBackground.value = data.image_url;
+    } else {
+      previewFetchFailed.value = true;
+    }
+  } catch {
+    // No endpoint in dev / offline: keep the switch state, show the hint.
+  } finally {
+    isFetchingPreview.value = false;
+  }
+}
+
+function togglePreview() {
+  showPreview.value = !showPreview.value;
+  if (showPreview.value) fetchPreviewImage();
+}
+
+// Typing a valid custom image URL turns the background feature on.
 watch(customBackground, (v) => {
   bgPreviewError.value = false;
-  // Typing a valid custom image URL turns the background feature on.
   if (/^https?:\/\//i.test(v || '')) showPreview.value = true;
 });
 
@@ -348,9 +375,10 @@ function handleDelete() {
                             </div>
                             <button
                                 type="button"
-                                @click="showPreview = !showPreview"
+                                @click="togglePreview"
                                 class="w-11 h-6 rounded-full transition-colors shrink-0 relative"
                                 :class="showPreview ? 'bg-black' : 'bg-gray-300'"
+                                :disabled="isFetchingPreview"
                                 aria-label="Toggle background preview"
                             >
                                 <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="showPreview ? 'left-5' : 'left-0.5'"></span>
@@ -363,7 +391,10 @@ function handleDelete() {
                                 <div v-if="bgPreviewError" class="absolute inset-0 bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">No se pudo cargar la imagen</div>
                             </div>
                             <div v-else class="rounded-2xl bg-white border border-dashed border-gray-200 py-3 px-4 text-center text-xs font-bold text-gray-400">
-                                Sin imagen todavía: se genera sola con el fetch periódico del enlace.
+                                <Loader2 v-if="isFetchingPreview" class="w-4 h-4 animate-spin mx-auto mb-1" />
+                                <span v-if="isFetchingPreview">Buscando imagen…</span>
+                                <span v-else-if="previewFetchFailed">No se encontró imagen. Se reintentará con el fetch periódico.</span>
+                                <span v-else>Sin imagen todavía: se genera sola con el fetch periódico del enlace.</span>
                             </div>
 
                             <input v-model="customBackground" type="url" placeholder="URL de imagen personalizada (opcional) sobreescribe la preview..." class="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />

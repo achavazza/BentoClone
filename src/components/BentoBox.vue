@@ -140,13 +140,13 @@ function onImageLoad(e) {
         </span>
       </div>
       <span class="font-semibold leading-tight line-clamp-2" :class="titleClass">
-        {{ item.preview?.title || item.title }}
+        {{ item.title || item.preview?.title }}
       </span>
       <p
-        v-if="(item.preview?.description || item.description) && item.size !== '2x1'"
+        v-if="(item.description || item.preview?.description) && item.size !== '2x1'"
         class="text-xs leading-relaxed line-clamp-2" :class="subClass"
       >
-        {{ item.preview?.description || item.description }}
+        {{ item.description || item.preview?.description }}
       </p>
     </div>
   </div>
