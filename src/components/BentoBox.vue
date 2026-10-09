@@ -113,7 +113,7 @@ function onImageLoad(e) {
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
     <img
       :src="bgImageSrc"
-      class="absolute inset-0 w-full h-full object-cover"
+      class="absolute inset-0 w-full h-full object-cover object-left-top"
       alt=""
       loading="lazy"
       referrerpolicy="no-referrer"

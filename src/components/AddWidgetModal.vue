@@ -349,7 +349,7 @@ function handleDelete() {
 
                         <template v-if="showPreview">
                             <div v-if="bgPreviewSrc" class="relative rounded-2xl overflow-hidden aspect-video bg-white border border-gray-200">
-                                <img :src="bgPreviewSrc" class="w-full h-full object-cover" alt="" referrerpolicy="no-referrer" @error="bgPreviewError = true" />
+                                <img :src="bgPreviewSrc" class="w-full h-full object-cover object-left-top" alt="" referrerpolicy="no-referrer" @error="bgPreviewError = true" />
                                 <div v-if="bgPreviewError" class="absolute inset-0 bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">No se pudo cargar la imagen</div>
                             </div>
                             <div v-else class="rounded-2xl bg-white border border-dashed border-gray-200 py-3 px-4 text-center text-xs font-bold text-gray-400">
