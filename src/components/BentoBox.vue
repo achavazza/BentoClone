@@ -38,16 +38,11 @@ function getLuminance(r, g, b) {
 
 const baseHex = computed(() => normalizeHex(props.item.bgColor));
 
-// If the box color is light we use dark text over the bottom band.
-const isLightBg = computed(() => {
-  const hex = baseHex.value;
-  if (!hex) return false;
-  const rgb = hexToRgb(hex);
-  return rgb ? getLuminance(rgb.r, rgb.g, rgb.b) >= 0.5 : false;
-});
-
 // Scrim: fade from the box's own color at the bottom to transparent on top.
 const scrimStyle = computed(() => {
+  if (isCustomBg.value) {
+    return { background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, transparent 78%)' };
+  }
   const hex = baseHex.value;
   if (!hex) {
     return { background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, transparent 78%)' };
@@ -56,9 +51,32 @@ const scrimStyle = computed(() => {
   return { background: `linear-gradient(to top, rgba(${r},${g},${b},0.95) 0%, rgba(${r},${g},${b},0.6) 45%, transparent 78%)` };
 });
 
+// If the box color is light we use dark text over the bottom band.
+const isLightBg = computed(() => {
+  if (isCustomBg.value) return false;
+  const hex = baseHex.value;
+  if (!hex) return false;
+  const rgb = hexToRgb(hex);
+  return rgb ? getLuminance(rgb.r, rgb.g, rgb.b) >= 0.5 : false;
+});
+
 const titleClass = computed(() => (isLightBg.value ? 'text-gray-900' : 'text-white'));
 const subClass = computed(() => (isLightBg.value ? 'text-gray-800/70' : 'text-white/70'));
 const labelClass = computed(() => (isLightBg.value ? 'text-gray-700/60' : 'text-white/60'));
+
+// The cover image: a custom background wins, otherwise the crawled preview.
+const bgImageSrc = computed(() => {
+  const custom = props.item.background_url;
+  if (custom && /^https?:\/\//i.test(custom)) return custom;
+  const p = props.item.preview?.image_url;
+  return p && /^https?:\/\//i.test(p) ? p : null;
+});
+
+// Over a custom image we don't know its colors, so force a dark scrim.
+const isCustomBg = computed(() => {
+  const custom = props.item.background_url;
+  return !!(custom && /^https?:\/\//i.test(custom));
+});
 
 // Keep the widget's own icon when possible; otherwise the cached favicon.
 const faviconSrc = computed(() => {
@@ -94,7 +112,7 @@ function onImageLoad(e) {
 <template>
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
     <img
-      :src="item.preview.image_url"
+      :src="bgImageSrc"
       class="absolute inset-0 w-full h-full object-cover"
       alt=""
       loading="lazy"
@@ -110,7 +128,7 @@ function onImageLoad(e) {
     <div class="absolute inset-x-0 bottom-0 p-4 md:p-5 flex flex-col gap-1">
       <div class="flex items-center gap-1.5 min-w-0">
         <img
-          v-if="faviconSrc && faviconSrc !== item.preview.image_url"
+          v-if="faviconSrc && faviconSrc !== bgImageSrc"
           :src="faviconSrc"
           class="w-3.5 h-3.5 rounded-sm object-contain shrink-0"
           alt=""

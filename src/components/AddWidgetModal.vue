@@ -23,8 +23,11 @@ const selectedIcon = ref(null);
 const bgColor = ref('#ffffff');
 const description = ref('');
 const customFavicon = ref('');
+const faviconOpen = ref(false);
+const faviconDraft = ref('');
 const autoFaviconFailed = ref(false);
 const showPreview = ref(true);
+const customBackground = ref('');
 const isUploading = ref(false);
 const uploadError = ref('');
 const urlError = ref('');
@@ -46,6 +49,22 @@ const faviconPreview = computed(() => {
     if (url.value && activeTab.value === 'social' && !autoFaviconFailed.value) return getAutoFavicon(url.value);
     return null;
 });
+
+function openFaviconEditor() {
+    faviconOpen.value = true;
+    faviconDraft.value = customFavicon.value
+        || (faviconPreview.value && /^https?:/i.test(faviconPreview.value) ? faviconPreview.value : '');
+}
+
+function acceptFavicon() {
+    customFavicon.value = faviconDraft.value.trim();
+    faviconOpen.value = false;
+}
+
+function clearFavicon() {
+    customFavicon.value = '';
+    faviconOpen.value = false;
+}
 
 const socialOptions = [
   { name: 'Instagram', icon: socialIcons['Instagram'], bg: '#FCE7F3' },
@@ -78,6 +97,10 @@ watch(() => props.isOpen, (newVal) => {
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
         showPreview.value = w.show_preview !== false;
+        customBackground.value = w.background_url || '';
+        faviconOpen.value = false;
+        faviconDraft.value = '';
+        bgPreviewError.value = false;
         uploadError.value = '';
     } else if (newVal) {
         // Reset defaults
@@ -91,6 +114,9 @@ watch(() => props.isOpen, (newVal) => {
          activeTab.value = 'social';
          size.value = '1x1';
          showPreview.value = true;
+         customBackground.value = '';
+         faviconOpen.value = false;
+         faviconDraft.value = '';
          uploadError.value = '';
     }
 });
@@ -98,6 +124,15 @@ watch(() => props.isOpen, (newVal) => {
 watch(url, () => {
     autoFaviconFailed.value = false;
 });
+
+// Which image the "imagen de fondo" will use: custom URL or the cached preview.
+const bgPreviewSrc = computed(() => {
+    if (customBackground.value && /^https?:\/\//i.test(customBackground.value)) return customBackground.value;
+    const p = props.existingWidget?.preview?.image_url;
+    return p && /^https?:\/\//i.test(p) ? p : null;
+});
+const bgPreviewError = ref(false);
+watch(customBackground, () => { bgPreviewError.value = false; });
 
 function selectSocial(opt) {
     selectedIcon.value = opt.icon;
@@ -151,6 +186,7 @@ function handleSubmit() {
         widget.title = title.value || 'Link';
         widget.content = url.value;
         widget.icon = customFavicon.value || selectedIcon.value || getAutoFavicon(url.value);
+        widget.background_url = customBackground.value || null;
     } else if (activeTab.value === 'text') {
         widget.title = title.value;
         widget.content = textContent.value;
@@ -266,83 +302,98 @@ function handleDelete() {
                     <input v-model="url" type="url" placeholder="Paste image URL..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
                 </div>
                 <div v-else>
-                    <input v-model="url" type="url" placeholder="Link URL..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
+                    <div class="flex items-center gap-2">
+                        <input v-model="url" type="url" placeholder="Link URL..." class="flex-1 p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-medium" />
 
-                    <!-- Custom Favicon -->
-                    <div class="flex items-center gap-3 mt-3">
-                        <div v-if="faviconPreview" class="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
-                            <img :src="faviconPreview" class="w-full h-full object-contain" @error="autoFaviconFailed = true" />
+                        <!-- Favicon: click to change it -->
+                        <button
+                            type="button"
+                            @click="openFaviconEditor"
+                            class="relative w-12 h-12 shrink-0 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors"
+                            :title="faviconPreview || 'Sin favicon — clic para cambiar'"
+                        >
+                            <img v-if="faviconPreview" :src="faviconPreview" class="w-full h-full object-contain p-1.5" alt="" referrerpolicy="no-referrer" @error="autoFaviconFailed = true" />
+                            <ImageIcon v-else class="w-4 h-4 text-gray-400" />
+                        </button>
+                    </div>
+
+                    <!-- Collapsed favicon editor -->
+                    <div v-if="faviconOpen" class="mt-3 p-3 bg-gray-50 rounded-2xl space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input v-model="faviconDraft" type="url" placeholder="Custom favicon URL..." class="flex-1 p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" @keyup.enter="acceptFavicon" />
+                            <button type="button" @click="acceptFavicon" class="shrink-0 px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors">OK</button>
+                            <button type="button" @click="faviconOpen = false" class="shrink-0 p-2.5 rounded-xl hover:bg-gray-200 text-gray-400 transition-colors" aria-label="Cerrar">
+                                <X class="w-4 h-4" />
+                            </button>
                         </div>
-                        <div v-else class="w-10 h-10 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
-                            <ImageIcon class="w-4 h-4 text-gray-400" />
-                        </div>
-                        <input v-model="customFavicon" type="url" placeholder="Custom favicon URL (optional)..." class="flex-1 p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
+                        <button v-if="customFavicon" type="button" @click="clearFavicon" class="text-xs font-bold text-gray-400 hover:text-gray-600">Quitar favicon personalizado</button>
                     </div>
 
                     <!-- Background preview toggle -->
-                    <div class="flex items-center justify-between gap-3 mt-3 p-4 bg-gray-50 rounded-2xl">
-                        <div class="min-w-0">
-                            <span class="block text-sm font-bold text-gray-900">Imagen de fondo</span>
-                            <span class="block text-[11px] text-gray-400 font-medium leading-tight">Vista previa del enlace sobre el color de la caja. Se completa sola con el fetch periódico.</span>
+                    <div class="mt-3 p-4 bg-gray-50 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <span class="block text-sm font-bold text-gray-900">Imagen de fondo</span>
+                                <span class="block text-[11px] text-gray-400 font-medium leading-tight">Vista previa del enlace sobre el color de la caja. Se completa sola con el fetch periódico.</span>
+                            </div>
+                            <button
+                                type="button"
+                                @click="showPreview = !showPreview"
+                                class="w-11 h-6 rounded-full transition-colors shrink-0 relative"
+                                :class="showPreview ? 'bg-black' : 'bg-gray-300'"
+                                aria-label="Toggle background preview"
+                            >
+                                <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="showPreview ? 'left-5' : 'left-0.5'"></span>
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            @click="showPreview = !showPreview"
-                            class="w-11 h-6 rounded-full transition-colors shrink-0 relative"
-                            :class="showPreview ? 'bg-black' : 'bg-gray-300'"
-                            aria-label="Toggle background preview"
-                        >
-                            <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="showPreview ? 'left-5' : 'left-0.5'"></span>
-                        </button>
+
+                        <template v-if="showPreview">
+                            <div v-if="bgPreviewSrc" class="relative rounded-2xl overflow-hidden aspect-video bg-white border border-gray-200">
+                                <img :src="bgPreviewSrc" class="w-full h-full object-cover" alt="" referrerpolicy="no-referrer" @error="bgPreviewError = true" />
+                                <div v-if="bgPreviewError" class="absolute inset-0 bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">No se pudo cargar la imagen</div>
+                            </div>
+                            <div v-else class="rounded-2xl bg-white border border-dashed border-gray-200 py-3 px-4 text-center text-xs font-bold text-gray-400">
+                                Sin imagen todavía: se genera sola con el fetch periódico del enlace.
+                            </div>
+
+                            <input v-model="customBackground" type="url" placeholder="URL de imagen personalizada (opcional) sobreescribe la preview..." class="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
+                        </template>
                     </div>
                 </div>
 
-                <!-- Description -->
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Description</label>
-                    <textarea v-model="description" rows="2" placeholder="A short description..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none resize-none font-medium text-sm"></textarea>
-                </div>
-
-                <!-- Extended Details -->
+                <!-- Extended Details: Title -> Description -> Size + Background -->
                 <div v-if="editMode || activeTab !== 'social'" class="space-y-6 pt-6 border-t border-gray-100">
                     <div>
                         <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Custom Title</label>
                         <input v-model="title" type="text" placeholder="e.g. My Portfolio" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-bold" />
                     </div>
-                    
-                    <!-- Size Selector -->
+
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Box Size</label>
-                        <div class="grid grid-cols-4 gap-3">
-                            <button 
-                                v-for="s in [
-                                    { label: '1x1', val: '1x1', dots: 1, cols: 1 },
-                                    { label: '2x1', val: '2x1', dots: 2, cols: 2 },
-                                    { label: '1x2', val: '1x2', dots: 2, cols: 1 },
-                                    { label: '2x2', val: '2x2', dots: 4, cols: 2 }
-                                ]" 
-                                :key="s.val" 
-                                @click="size = s.val"
-                                class="aspect-square flex flex-col items-center justify-center gap-2 rounded-2xl border-2 transition-all"
-                                :class="size === s.val ? 'border-black bg-black text-white' : 'border-gray-100 text-gray-400 hover:border-gray-200'"
-                            >
-                                <!-- Visual Representation -->
-                                <div class="grid gap-0.5" :class="s.cols === 2 ? 'grid-cols-2' : 'grid-cols-1'">
-                                    <div v-for="i in s.dots" :key="i" class="w-1.5 h-1.5 rounded-sm" :class="size === s.val ? 'bg-white' : 'bg-gray-400'"></div>
-                                </div>
-                                <span class="text-[10px] font-black">{{ s.label }}</span>
-                            </button>
-                        </div>
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Description</label>
+                        <textarea v-model="description" rows="2" placeholder="A short description..." class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none resize-none font-medium text-sm"></textarea>
                     </div>
 
-                    <!-- Background Color -->
-                    <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Decoration</label>
-                        <div class="flex gap-3 items-center p-1 bg-gray-50 rounded-2xl">
-                             <div class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
-                                 <input type="color" v-model="bgColor" class="absolute -inset-2 w-[150%] h-[150%] cursor-pointer border-none bg-transparent" />
-                             </div>
-                             <input type="text" v-model="bgColor" class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-mono font-bold uppercase" />
+                    <div class="flex items-end gap-4">
+                        <!-- Box Size (dropdown) -->
+                        <div class="flex-1">
+                            <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Box Size</label>
+                            <select v-model="size" class="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black/5 outline-none font-bold cursor-pointer">
+                                <option value="1x1">1×1 — Square</option>
+                                <option value="2x1">2×1 — Wide</option>
+                                <option value="1x2">1×2 — Tall</option>
+                                <option value="2x2">2×2 — Large</option>
+                            </select>
+                        </div>
+
+                        <!-- Background -->
+                        <div class="flex-1">
+                            <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Background</label>
+                            <div class="flex gap-3 items-center p-1 bg-gray-50 rounded-2xl">
+                                 <div class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                     <input type="color" v-model="bgColor" class="absolute -inset-2 w-[150%] h-[150%] cursor-pointer border-none bg-transparent" />
+                                 </div>
+                                 <input type="text" v-model="bgColor" class="w-full bg-transparent border-none focus:ring-0 text-sm font-mono font-bold uppercase" />
+                            </div>
                         </div>
                     </div>
                 </div>

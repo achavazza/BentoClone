@@ -98,16 +98,21 @@ const showDescription = computed(() => {
 // A social link gets the rich preview tile only when we have a real,
 // remote image; otherwise the classic icon layout (and its bg color) stays.
 const previewFailed = ref(false);
+const hasBgImage = computed(() => {
+    const custom = props.item.background_url;
+    if (custom && /^https?:\/\//i.test(custom)) return true;
+    return /^https?:\/\//i.test(props.item.preview?.image_url || '');
+});
 const showPreview = computed(() => {
     return props.item.type === 'social'
         && props.item.size !== '1x1'
         && props.item.show_preview !== false
-        && /^https?:\/\//i.test(props.item.preview?.image_url || '')
+        && hasBgImage.value
         && !previewFailed.value;
 });
 
 // If the widget/preview changes, allow a retry of a failed image.
-watch(() => props.item.preview?.image_url, () => {
+watch(() => [props.item.preview?.image_url, props.item.background_url], () => {
     previewFailed.value = false;
 });
 </script>
