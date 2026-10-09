@@ -24,6 +24,7 @@ const bgColor = ref('#ffffff');
 const description = ref('');
 const customFavicon = ref('');
 const autoFaviconFailed = ref(false);
+const showPreview = ref(true);
 const isUploading = ref(false);
 const uploadError = ref('');
 const urlError = ref('');
@@ -76,6 +77,7 @@ watch(() => props.isOpen, (newVal) => {
         bgColor.value = w.bgColor || '#ffffff';
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
+        showPreview.value = w.show_preview !== false;
         uploadError.value = '';
     } else if (newVal) {
         // Reset defaults
@@ -88,6 +90,7 @@ watch(() => props.isOpen, (newVal) => {
          bgColor.value = '#ffffff';
          activeTab.value = 'social';
          size.value = '1x1';
+         showPreview.value = true;
          uploadError.value = '';
     }
 });
@@ -138,7 +141,8 @@ function handleSubmit() {
     let widget = {
         type: activeTab.value,
         bgColor: bgColor.value,
-        size: size.value
+        size: size.value,
+        show_preview: showPreview.value
     };
 
     widget.description = description.value || '';
@@ -273,6 +277,23 @@ function handleDelete() {
                             <ImageIcon class="w-4 h-4 text-gray-400" />
                         </div>
                         <input v-model="customFavicon" type="url" placeholder="Custom favicon URL (optional)..." class="flex-1 p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
+                    </div>
+
+                    <!-- Background preview toggle -->
+                    <div class="flex items-center justify-between gap-3 mt-3 p-4 bg-gray-50 rounded-2xl">
+                        <div class="min-w-0">
+                            <span class="block text-sm font-bold text-gray-900">Imagen de fondo</span>
+                            <span class="block text-[11px] text-gray-400 font-medium leading-tight">Vista previa del enlace sobre el color de la caja. Se completa sola con el fetch periódico.</span>
+                        </div>
+                        <button
+                            type="button"
+                            @click="showPreview = !showPreview"
+                            class="w-11 h-6 rounded-full transition-colors shrink-0 relative"
+                            :class="showPreview ? 'bg-black' : 'bg-gray-300'"
+                            aria-label="Toggle background preview"
+                        >
+                            <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="showPreview ? 'left-5' : 'left-0.5'"></span>
+                        </button>
                     </div>
                 </div>
 

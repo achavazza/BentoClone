@@ -101,6 +101,7 @@ const previewFailed = ref(false);
 const showPreview = computed(() => {
     return props.item.type === 'social'
         && props.item.size !== '1x1'
+        && props.item.show_preview !== false
         && /^https?:\/\//i.test(props.item.preview?.image_url || '')
         && !previewFailed.value;
 });
