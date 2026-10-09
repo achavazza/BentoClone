@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
   // Widget enriched with a `preview` object (row from box_previews).
@@ -62,7 +62,7 @@ const isLightBg = computed(() => {
 
 const titleClass = computed(() => (isLightBg.value ? 'text-gray-900' : 'text-white'));
 const subClass = computed(() => (isLightBg.value ? 'text-gray-800/70' : 'text-white/70'));
-const labelClass = computed(() => (isLightBg.value ? 'text-gray-700' : 'text-white'));
+const mutedClass = computed(() => (isLightBg.value ? 'text-gray-400' : 'text-white/50'));
 
 // The cover image: a custom background wins, otherwise the crawled preview.
 const bgImageSrc = computed(() => {
@@ -78,22 +78,32 @@ const isCustomBg = computed(() => {
   return !!(custom && /^https?:\/\//i.test(custom));
 });
 
-// Keep the widget's own icon when possible; otherwise the cached favicon.
-const faviconSrc = computed(() => {
-  const icon = props.item.icon;
-  if (icon && /^(https?:|data:)/i.test(icon)) return icon;
-  return props.item.preview?.favicon_url || null;
+// The text block mirrors the classic layout: the widget's own icon, title
+// and @username. Only the description moves to the bottom, over the scrim.
+
+const iconFailed = ref(false);
+
+const isUrlIcon = computed(() => {
+    return props.item.icon && (props.item.icon.startsWith('http') || props.item.icon.startsWith('data:'));
 });
 
-// "generic" is an ugly label; show the hostname instead.
-const platformLabel = computed(() => {
-  const p = props.item.preview?.platform;
-  if (p && p !== 'generic') return p;
-  try {
-    return new URL(props.item.preview?.url || props.item.content).hostname.replace(/^www\./, '');
-  } catch {
-    return p || 'link';
-  }
+const iconInitial = computed(() => {
+    if (props.item.title && props.item.title.length > 0) return props.item.title[0].toUpperCase();
+    return null;
+});
+
+const socialHandle = computed(() => {
+    if (props.item.type !== 'social' || !props.item.content) return null;
+    try {
+        const parsed = new URL(props.item.content);
+        const pathParts = parsed.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+        if (pathParts.length > 0) {
+            return `@${pathParts[pathParts.length - 1]}`;
+        }
+        return parsed.hostname;
+    } catch (e) {
+        return null;
+    }
 });
 
 function onImageError() {
@@ -124,30 +134,25 @@ function onImageLoad(e) {
     <!-- Scrim: box color at the bottom fading to transparent -->
     <div class="absolute inset-0" :style="scrimStyle"></div>
 
-    <!-- Text block, anchored to the bottom -->
-    <div class="absolute inset-x-0 bottom-0 p-4 md:p-5 flex flex-col gap-1">
-      <div class="flex items-center gap-1.5 min-w-0">
-        <img
-          v-if="faviconSrc && faviconSrc !== bgImageSrc"
-          :src="faviconSrc"
-          class="w-3.5 h-3.5 rounded-sm object-contain shrink-0"
-          alt=""
-          loading="lazy"
-          referrerpolicy="no-referrer"
-        />
-        <span class="text-[10px] font-semibold uppercase tracking-wide truncate" :class="labelClass">
-          {{ platformLabel }}
+    <!-- Text block, anchored to the bottom, mirroring the classic layout -->
+    <div class="absolute inset-x-0 bottom-0 p-6 flex flex-col gap-1.5">
+      <template v-if="item.icon">
+        <img v-if="isUrlIcon && !iconFailed" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" @error="iconFailed = true" />
+        <div v-else-if="isUrlIcon && iconFailed && iconInitial" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" :class="titleClass" :style="{ backgroundColor: isLightBg ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)' }">{{ iconInitial }}</div>
+        <i v-else-if="!isUrlIcon" :class="[item.icon, 'text-4xl']"></i>
+      </template>
+      <div class="flex flex-col min-w-0">
+        <span class="font-semibold leading-tight mb-1 truncate" :class="titleClass">
+          {{ item.title || item.preview?.title }}
         </span>
+        <span v-if="socialHandle" class="text-xs font-medium truncate" :class="mutedClass">{{ socialHandle }}</span>
+        <p
+          v-if="(item.description || item.preview?.description) && item.size !== '1x1'"
+          class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="subClass"
+        >
+          {{ item.description || item.preview?.description }}
+        </p>
       </div>
-      <span class="font-semibold leading-tight line-clamp-2" :class="titleClass">
-        {{ item.title || item.preview?.title }}
-      </span>
-      <p
-        v-if="(item.description || item.preview?.description) && item.size !== '2x1'"
-        class="text-xs leading-relaxed line-clamp-2" :class="subClass"
-      >
-        {{ item.description || item.preview?.description }}
-      </p>
     </div>
   </div>
 </template>
