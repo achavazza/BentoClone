@@ -125,12 +125,16 @@ export const useProfileStore = defineStore('profile', () => {
             }
 
             if (widgetsData) {
-                widgets.value = widgetsData.map(w => ({
-                    ...w,
-                    // PostgREST embeds as array (or object for a unique FK).
-                    preview: Array.isArray(w.box_previews) ? (w.box_previews[0] || null) : (w.box_previews || null),
-                    icon: getWidgetIcon(w)
-                }))
+                widgets.value = widgetsData.map(w => {
+                    // box_previews is the joined PostgREST resource (array or
+                    // object for our unique FK); never keep it on the widget.
+                    const { box_previews, ...rest } = w
+                    return {
+                        ...rest,
+                        preview: Array.isArray(box_previews) ? (box_previews[0] || null) : (box_previews || null),
+                        icon: getWidgetIcon(rest)
+                    }
+                })
             }
             return true
 
@@ -225,6 +229,12 @@ export const useProfileStore = defineStore('profile', () => {
         if (index !== -1) {
             const previous = widgets.value[index]
             const merged = { ...previous, ...updatedWidget };
+
+            // Invalidate the cached preview when the link itself changed.
+            if (merged.content && merged.content !== previous.content) {
+                merged.preview = null
+            }
+
             widgets.value[index] = { ...merged, icon: getWidgetIcon(merged) };
 
             // If the image changed, remove the old file to avoid orphans.
@@ -233,7 +243,13 @@ export const useProfileStore = defineStore('profile', () => {
             }
 
             if (typeof updatedWidget.id === 'number') {
-                await supabase.from('widgets').update(widgets.value[index]).eq('id', updatedWidget.id);
+                // State carries client-only helpers (preview/box_previews)
+                // that are not real columns and would make the UPDATE fail.
+                const payload = { ...widgets.value[index] }
+                delete payload.preview
+                delete payload.box_previews
+                const { error } = await supabase.from('widgets').update(payload).eq('id', updatedWidget.id)
+                if (error) console.error('Edit widget failed', error)
             }
         }
     }
