@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { GripVertical, Pencil } from 'lucide-vue-next';
+import BentoBox from './BentoBox.vue';
 
 const props = defineProps({
   item: {
@@ -93,6 +94,14 @@ const socialHandle = computed(() => {
 const showDescription = computed(() => {
     return props.item.description && props.item.size !== '1x1';
 });
+
+// A social link gets the rich preview treatment only when we actually
+// have cached metadata and the card is big enough (1x1 stays an icon tile).
+const showPreview = computed(() => {
+    return props.item.type === 'social'
+        && props.item.size !== '1x1'
+        && !!props.item.preview;
+});
 </script>
 
 <template>
@@ -129,7 +138,7 @@ const showDescription = computed(() => {
     </button>
 
     <!-- Content Area (Centered) -->
-    <div class="flex-1 flex flex-col justify-left items-start p-6 pointer-events-none">
+    <div v-if="!showPreview" class="flex-1 flex flex-col justify-left items-start p-6 pointer-events-none">
       
         <!-- Content Rendering -->
         <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
@@ -167,5 +176,8 @@ const showDescription = computed(() => {
             <span class="text-xs font-medium">Add Widget</span>
         </div>
     </div>
+
+    <!-- Rich link preview (social widgets with cached metadata) -->
+    <BentoBox v-else :item="item" />
   </div>
 </template>

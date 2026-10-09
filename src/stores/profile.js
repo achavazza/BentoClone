@@ -104,16 +104,33 @@ export const useProfileStore = defineStore('profile', () => {
 
             profile.value = profileData
 
-            // 2. Get Widgets
-            const { data: widgetsData } = await supabase
+            // 2. Get Widgets (with cached link previews when available).
+            // box_previews may not exist yet on a fresh project, so fall
+            // back to a plain select if the embed fails.
+            let { data: widgetsData, error: widgetsError } = await supabase
                 .from('widgets')
-                .select('*')
+                .select('*, box_previews(*)')
                 .eq('user_id', profileData.id)
                 .order('position', { ascending: true })
                 .limit(200)
 
+            if (widgetsError) {
+                const fallback = await supabase
+                    .from('widgets')
+                    .select('*')
+                    .eq('user_id', profileData.id)
+                    .order('position', { ascending: true })
+                    .limit(200)
+                widgetsData = fallback.data
+            }
+
             if (widgetsData) {
-                widgets.value = widgetsData.map(w => ({ ...w, icon: getWidgetIcon(w) }));
+                widgets.value = widgetsData.map(w => ({
+                    ...w,
+                    // PostgREST embeds as array (or object for a unique FK).
+                    preview: Array.isArray(w.box_previews) ? (w.box_previews[0] || null) : (w.box_previews || null),
+                    icon: getWidgetIcon(w)
+                }))
             }
             return true
 

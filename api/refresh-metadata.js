@@ -174,7 +174,7 @@ const FETCHERS = {
   generic: fetchGeneric
 }
 
-async function refreshWidget(w) {
+export async function refreshWidget(w) {
   const url = (w.content || '').trim()
   if (!/^https?:\/\//i.test(url)) return null
   const platform = detectPlatform(url)
@@ -195,24 +195,18 @@ async function refreshWidget(w) {
   }
 }
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ error: 'method not allowed' })
-  }
-  const secret = process.env.CRON_SECRET
-  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
-    return res.status(401).json({ error: 'unauthorized' })
-  }
-
-  const { data: widgets, error } = await supabase
+// Reads all social widgets and fetches fresh preview metadata. Shared by the
+// Vercel cron handler and scripts/refresh-previews.mjs (local populate).
+export async function collectPreviews(client) {
+  const { data: widgets, error } = await client
     .from('widgets')
     .select('id, content, title, description')
     .eq('type', 'social')
     .not('content', 'is', null)
     .limit(1000)
 
-  if (error) return res.status(500).json({ error: error.message })
-  if (!widgets?.length) return res.status(200).json({ total: 0, updated: 0, failed: 0 })
+  if (error) throw new Error(error.message)
+  if (!widgets?.length) return { total: 0, rows: [], failures: [] }
 
   const results = await Promise.allSettled(widgets.map(refreshWidget))
 
@@ -230,19 +224,37 @@ export default async function handler(req, res) {
     }
   })
 
-  if (rows.length) {
-    const { error: upsertError } = await supabase
-      .from('box_previews')
-      .upsert(rows, { onConflict: 'widget_id' })
-    if (upsertError) {
-      return res.status(500).json({ error: upsertError.message, updated: 0, failed: failures.length })
-    }
+  return { total: widgets.length, rows, failures }
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'method not allowed' })
+  }
+  const secret = process.env.CRON_SECRET
+  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: 'unauthorized' })
   }
 
-  return res.status(200).json({
-    total: widgets.length,
-    updated: rows.length,
-    failed: failures.length,
-    failures
-  })
+  try {
+    const { total, rows, failures } = await collectPreviews(supabase)
+
+    if (rows.length) {
+      const { error: upsertError } = await supabase
+        .from('box_previews')
+        .upsert(rows, { onConflict: 'widget_id' })
+      if (upsertError) {
+        return res.status(500).json({ error: upsertError.message, updated: 0, failed: failures.length })
+      }
+    }
+
+    return res.status(200).json({
+      total,
+      updated: rows.length,
+      failed: failures.length,
+      failures
+    })
+  } catch (e) {
+    return res.status(500).json({ error: e.message })
+  }
 }
