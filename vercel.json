@@ -1,4 +1,10 @@
 {
+    "crons": [
+        {
+            "path": "/api/refresh-metadata",
+            "schedule": "0 0 1 * *"
+        }
+    ],
     "rewrites": [
         {
             "source": "/:path*",

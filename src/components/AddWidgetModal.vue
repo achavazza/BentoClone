@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { X, Upload, Loader2, AlertCircle, ImageIcon } from 'lucide-vue-next';
 import { socialIcons } from '../lib/icons';
 import { useProfileStore } from '../stores/profile';
+import { useNotifyStore } from '../stores/notify';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -13,6 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'add', 'edit', 'delete']);
 
 const store = useProfileStore();
+const notify = useNotifyStore();
 const activeTab = ref('social');
 const url = ref('');
 const title = ref('');
@@ -56,6 +58,9 @@ const socialOptions = [
 ];
 
 const size = ref('1x1');
+
+const widgetCount = computed(() => store.widgets.filter(w => w.type !== 'placeholder' && typeof w.id === 'number').length);
+const atLimit = computed(() => !props.editMode && widgetCount.value >= store.MAX_WIDGETS);
 
 // Initialize form when opening in edit mode
 watch(() => props.isOpen, (newVal) => {
@@ -109,10 +114,12 @@ async function handleFileUpload(event) {
         if (publicUrl) {
             url.value = publicUrl;
         } else {
-            uploadError.value = 'Failed to upload image. Please try again.';
+            uploadError.value = 'No se pudo subir la imagen.';
+            notify.error('No se pudo subir la imagen', uploadError.value);
         }
     } catch (e) {
-        uploadError.value = e.message || 'Failed to upload image.';
+        uploadError.value = e.message || 'No se pudo subir la imagen.';
+        notify.error('No se pudo subir la imagen', e.message);
     } finally {
         isUploading.value = false;
     }
@@ -322,7 +329,8 @@ function handleDelete() {
 
             <div class="flex flex-col gap-3 pt-4 pb-2">
                 <p v-if="urlError" class="text-red-500 text-xs font-bold">{{ urlError }}</p>
-                <button @click="handleSubmit" :disabled="isUploading" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                <p v-if="atLimit" class="text-red-500 text-xs font-bold">Límite alcanzado: máximo {{ store.MAX_WIDGETS }} widgets por perfil.</p>
+                <button @click="handleSubmit" :disabled="isUploading || atLimit" class="w-full py-4 bg-black text-white rounded-2xl font-black hover:bg-gray-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span v-if="isUploading" class="flex items-center justify-center gap-2">
                         <Loader2 class="w-5 h-5 animate-spin" />
                         Uploading...

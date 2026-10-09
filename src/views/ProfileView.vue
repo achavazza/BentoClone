@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProfileStore } from '../stores/profile'
+import { useNotifyStore } from '../stores/notify'
 import ProfileSidebar from '../components/ProfileSidebar.vue'
 import BentoGrid from '../components/BentoGrid.vue'
 import AddWidgetModal from '../components/AddWidgetModal.vue'
@@ -16,6 +17,7 @@ import { trackEvent } from '../utils/analytics'
 
 const route = useRoute()
 const store = useProfileStore()
+const notify = useNotifyStore()
 const showAddModal = ref(false)
 const showShareModal = ref(false)
 const showSettingsModal = ref(false)
@@ -91,8 +93,23 @@ watch(() => store.profile?.avatar_url, (newUrl) => {
 
 // Modal Handlers
 function handleAddWidget(widget) {
+    const current = store.widgets.filter(w => w.type !== 'placeholder' && typeof w.id === 'number').length
+    if (current >= store.MAX_WIDGETS) {
+        notify.error('Límite alcanzado', `Podés tener hasta ${store.MAX_WIDGETS} widgets por perfil.`)
+        showAddModal.value = false
+        return
+    }
     store.addWidget(widget)
     showAddModal.value = false
+}
+
+async function handleUploadAvatar(file) {
+    try {
+        await store.uploadAvatar(file)
+        notify.success('Avatar actualizado')
+    } catch (e) {
+        notify.error('No se pudo subir la imagen', e.message)
+    }
 }
 
 function handleEditWidget(widget) {
@@ -163,7 +180,7 @@ function toggleEdit() {
         @open-settings="showSettingsModal = true"
         @open-analytics="openAnalytics"
         @update="store.updateProfile"
-        @upload-avatar="store.uploadAvatar"
+        @upload-avatar="handleUploadAvatar"
       />
     </aside>
 

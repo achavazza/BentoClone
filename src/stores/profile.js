@@ -51,16 +51,32 @@ export const useProfileStore = defineStore('profile', () => {
         const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
 
         if (!existingProfile) {
-            // Create profile
-            const username = authUser.email.split('@')[0] + Math.floor(Math.random() * 1000);
-            await supabase.from('profiles').insert({
-                id: authUser.id,
-                username: username,
-                full_name: authUser.user_metadata.full_name || 'Creator',
-                avatar_url: googleAvatar,
-                bio: 'Welcome to my Bento!',
-                location: 'Earth'
-            })
+            // Sanitized auto-handle: lowercase [a-z0-9_], min 3 / max 15 chars.
+            const base = (authUser.email || 'user')
+                .split('@')[0]
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, '')
+                .slice(0, 11)
+            const root = base.length >= 3 ? base : 'user'
+
+            // Retry on unique-handle collisions.
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const suffix = Math.floor(1000 + Math.random() * 9000)
+                const username = `${root}${suffix}`.slice(0, 15)
+                const { error } = await supabase.from('profiles').insert({
+                    id: authUser.id,
+                    username: username,
+                    full_name: (authUser.user_metadata.full_name || 'Creator').slice(0, 60),
+                    avatar_url: googleAvatar,
+                    bio: 'Welcome to my Bento!',
+                    location: 'Earth'
+                })
+                if (!error) break
+                if (!/duplicate|unique/i.test(error.message)) {
+                    console.error('Profile creation failed', error)
+                    break
+                }
+            }
         } else if (!existingProfile.avatar_url && googleAvatar) {
             // Sync Google avatar to existing profile if it doesn't have one
             await updateProfile({ avatar_url: googleAvatar })
@@ -94,6 +110,7 @@ export const useProfileStore = defineStore('profile', () => {
                 .select('*')
                 .eq('user_id', profileData.id)
                 .order('position', { ascending: true })
+                .limit(200)
 
             if (widgetsData) {
                 widgets.value = widgetsData.map(w => ({ ...w, icon: getWidgetIcon(w) }));
@@ -131,8 +148,31 @@ export const useProfileStore = defineStore('profile', () => {
 
     let timeout = null
 
+    const MAX_WIDGETS = 30
+
+    // Remove a user-content storage file referenced by a widget (ignores
+    // external URLs). Only the owner's own folder is ever touched.
+    async function removeStorageFile(url) {
+        if (!user.value || !url) return
+        const m = url.match(/\/object\/(?:public|sign|authenticated)\/user-content\/(.+?)(?:\?|$)/)
+        if (!m) return
+        const path = decodeURIComponent(m[1])
+        if (!path.startsWith(`${user.value.id}/`)) return
+        await supabase.storage.from('user-content').remove([path])
+    }
+
+    function countWidgets() {
+        return widgets.value.filter(w => w.type !== 'placeholder' && typeof w.id === 'number').length
+    }
+
     async function addWidget(widget) {
         if (!isOwner.value) return
+
+        // Friendly guard (the DB trigger is the real, unbypassable limit).
+        if (countWidgets() >= MAX_WIDGETS) {
+            console.warn(`Widget limit reached (max ${MAX_WIDGETS})`)
+            return
+        }
 
         const newWidget = {
             ...widget,
@@ -166,8 +206,14 @@ export const useProfileStore = defineStore('profile', () => {
 
         const index = widgets.value.findIndex(w => w.id === updatedWidget.id);
         if (index !== -1) {
-            const merged = { ...widgets.value[index], ...updatedWidget };
+            const previous = widgets.value[index]
+            const merged = { ...previous, ...updatedWidget };
             widgets.value[index] = { ...merged, icon: getWidgetIcon(merged) };
+
+            // If the image changed, remove the old file to avoid orphans.
+            if (updatedWidget.content && updatedWidget.content !== previous.content) {
+                await removeStorageFile(previous.content)
+            }
 
             if (typeof updatedWidget.id === 'number') {
                 await supabase.from('widgets').update(widgets.value[index]).eq('id', updatedWidget.id);
@@ -177,8 +223,10 @@ export const useProfileStore = defineStore('profile', () => {
 
     async function deleteWidget(id) {
         if (!isOwner.value) return
+        const target = widgets.value.find(w => w.id === id)
         widgets.value = widgets.value.filter(w => w.id !== id)
         await supabase.from('widgets').delete().eq('id', id)
+        if (target) await removeStorageFile(target.content)
     }
 
     async function checkHandleAvailability(username) {
@@ -246,15 +294,13 @@ export const useProfileStore = defineStore('profile', () => {
     async function uploadWidgetImage(file) {
         if (!user.value) return null
 
-        // 2MB Limit matches Supabase policy
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('La imagen es demasiado grande (máximo 2MB)')
+            throw new Error('La imagen pesa más de 2MB.')
         }
 
-        // Allowed Types
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Formato no válido. Solo se permiten JPG y PNG.')
+            throw new Error('Formato no válido: solo JPG o PNG.')
         }
 
         const fileExt = file.name.split('.').pop()
@@ -268,7 +314,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         if (uploadError) {
             console.error('Widget image upload failed', uploadError)
-            return null
+            throw new Error(uploadError.message || 'No se pudo subir la imagen.')
         }
 
         // Get Public URL
@@ -282,19 +328,28 @@ export const useProfileStore = defineStore('profile', () => {
     async function uploadAvatar(file) {
         if (!user.value) return
 
-        // 2MB Limit matches Supabase policy
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('La imagen es demasiado grande (máximo 2MB)')
+            throw new Error('La imagen pesa más de 2MB.')
         }
 
-        // Allowed Types
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Formato no válido. Solo se permiten JPG y PNG.')
+            throw new Error('Formato no válido: solo JPG o PNG.')
         }
 
         const fileExt = file.name.split('.').pop()
         const filePath = `${user.value.id}/avatar/current.${fileExt}`
+
+        // Remove previous avatar file(s) so changing extension (jpg->png)
+        // doesn't leave orphans behind.
+        const { data: existing } = await supabase.storage
+            .from('user-content')
+            .list(`${user.value.id}/avatar`)
+        if (existing?.length) {
+            await supabase.storage
+                .from('user-content')
+                .remove(existing.map(f => `${user.value.id}/avatar/${f.name}`))
+        }
 
         // Upload to Storage
         const { error: uploadError } = await supabase.storage
@@ -303,7 +358,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         if (uploadError) {
             console.error('Avatar upload failed', uploadError)
-            return
+            throw new Error(uploadError.message || 'No se pudo subir el avatar.')
         }
 
         // Get Public URL
@@ -376,6 +431,7 @@ export const useProfileStore = defineStore('profile', () => {
             .from('daily_stats')
             .select('visit_count')
             .eq('profile_id', profileId)
+            .limit(1000)
 
         const historicalCount = historical?.reduce((sum, row) => sum + (row.visit_count || 0), 0) || 0
 
@@ -407,6 +463,7 @@ export const useProfileStore = defineStore('profile', () => {
             .from('daily_stats')
             .select('visit_count, click_count')
             .eq('profile_id', profileId)
+            .limit(1000)
 
         // 2. Get recent raw logs
         const { data: recentLogs } = await supabase
@@ -414,6 +471,8 @@ export const useProfileStore = defineStore('profile', () => {
             .select('*')
             .eq('profile_id', profileId)
             .gte('created_at', queryDate)
+            .order('created_at', { ascending: false })
+            .limit(5000)
 
         // 3. Get latest 1000 for "Recent Activity" list
         const { data: allLogs } = await supabase
@@ -594,6 +653,7 @@ export const useProfileStore = defineStore('profile', () => {
         isOwner,
         toggleEditMode,
         isLoading,
+        MAX_WIDGETS,
         initAuth,
         loadProfileByUsername,
         updateWidgets,

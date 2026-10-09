@@ -36,6 +36,8 @@ function triggerUpload() {
 function handleFileChange(e) {
     const file = e.target.files[0];
     if (file) emit('upload-avatar', file);
+    // Reset so picking the same file again still triggers a change event
+    e.target.value = '';
 }
 
 function updateField(field, event) {
