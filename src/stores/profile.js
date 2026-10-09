@@ -328,12 +328,12 @@ export const useProfileStore = defineStore('profile', () => {
         if (!user.value) return null
 
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('La imagen pesa más de 2MB.')
+            throw new Error('The image is larger than 2MB.')
         }
 
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Formato no válido: solo JPG o PNG.')
+            throw new Error('Invalid format: only JPG or PNG.')
         }
 
         const fileExt = file.name.split('.').pop()
@@ -347,7 +347,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         if (uploadError) {
             console.error('Widget image upload failed', uploadError)
-            throw new Error(uploadError.message || 'No se pudo subir la imagen.')
+            throw new Error(uploadError.message || 'Could not upload the image.')
         }
 
         // Get Public URL
@@ -362,12 +362,12 @@ export const useProfileStore = defineStore('profile', () => {
         if (!user.value) return
 
         if (file.size > 2 * 1024 * 1024) {
-            throw new Error('La imagen pesa más de 2MB.')
+            throw new Error('The image is larger than 2MB.')
         }
 
         const allowedTypes = ['image/jpeg', 'image/png']
         if (!allowedTypes.includes(file.type)) {
-            throw new Error('Formato no válido: solo JPG o PNG.')
+            throw new Error('Invalid format: only JPG or PNG.')
         }
 
         const fileExt = file.name.split('.').pop()

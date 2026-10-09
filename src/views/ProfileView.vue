@@ -108,7 +108,7 @@ async function handleUploadAvatar(file) {
         await store.uploadAvatar(file)
         notify.success('Avatar actualizado')
     } catch (e) {
-        notify.error('No se pudo subir la imagen', e.message)
+        notify.error('Could not upload the image', e.message)
     }
 }
 

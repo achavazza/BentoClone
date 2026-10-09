@@ -189,12 +189,12 @@ async function handleFileUpload(event) {
         if (publicUrl) {
             url.value = publicUrl;
         } else {
-            uploadError.value = 'No se pudo subir la imagen.';
-            notify.error('No se pudo subir la imagen', uploadError.value);
+            uploadError.value = 'Could not upload the image.';
+            notify.error('Could not upload the image', uploadError.value);
         }
     } catch (e) {
-        uploadError.value = e.message || 'No se pudo subir la imagen.';
-        notify.error('No se pudo subir la imagen', e.message);
+        uploadError.value = e.message || 'Could not upload the image.';
+        notify.error('Could not upload the image', e.message);
     } finally {
         isUploading.value = false;
     }
@@ -347,7 +347,7 @@ function handleDelete() {
                             type="button"
                             @click="openFaviconEditor"
                             class="relative w-12 h-12 shrink-0 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors"
-                            :title="faviconPreview || 'Sin favicon — clic para cambiar'"
+                            :title="faviconPreview || 'No favicon — click to change'"
                         >
                             <img v-if="faviconPreview" :src="faviconPreview" class="w-full h-full object-contain p-1.5" alt="" referrerpolicy="no-referrer" @error="autoFaviconFailed = true" />
                             <ImageIcon v-else class="w-4 h-4 text-gray-400" />
@@ -359,19 +359,19 @@ function handleDelete() {
                         <div class="flex items-center gap-2">
                             <input v-model="faviconDraft" type="url" placeholder="Custom favicon URL..." class="flex-1 p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" @keyup.enter="acceptFavicon" />
                             <button type="button" @click="acceptFavicon" class="shrink-0 px-4 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors">OK</button>
-                            <button type="button" @click="faviconOpen = false" class="shrink-0 p-2.5 rounded-xl hover:bg-gray-200 text-gray-400 transition-colors" aria-label="Cerrar">
+                            <button type="button" @click="faviconOpen = false" class="shrink-0 p-2.5 rounded-xl hover:bg-gray-200 text-gray-400 transition-colors" aria-label="Close">
                                 <X class="w-4 h-4" />
                             </button>
                         </div>
-                        <button v-if="customFavicon" type="button" @click="clearFavicon" class="text-xs font-bold text-gray-400 hover:text-gray-600">Quitar favicon personalizado</button>
+                        <button v-if="customFavicon" type="button" @click="clearFavicon" class="text-xs font-bold text-gray-400 hover:text-gray-600">Remove custom favicon</button>
                     </div>
 
                     <!-- Background preview toggle -->
                     <div class="mt-3 p-4 bg-gray-50 rounded-2xl space-y-3">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
-                                <span class="block text-sm font-bold text-gray-900">Imagen de fondo</span>
-                                <span class="block text-[11px] text-gray-400 font-medium leading-tight">Vista previa del enlace sobre el color de la caja. Se completa sola con el fetch periódico.</span>
+                                <span class="block text-sm font-bold text-gray-900">Background image</span>
+                                <span class="block text-[11px] text-gray-400 font-medium leading-tight">Preview of the link over the box color. Fills itself with the periodic fetch.</span>
                             </div>
                             <button
                                 type="button"
@@ -388,16 +388,16 @@ function handleDelete() {
                         <template v-if="showPreview">
                             <div v-if="bgPreviewSrc" class="relative rounded-2xl overflow-hidden aspect-video bg-white border border-gray-200">
                                 <img :src="bgPreviewSrc" class="w-full h-full object-cover object-left-top" alt="" referrerpolicy="no-referrer" @error="bgPreviewError = true" />
-                                <div v-if="bgPreviewError" class="absolute inset-0 bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">No se pudo cargar la imagen</div>
+                                <div v-if="bgPreviewError" class="absolute inset-0 bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">Could not load the image</div>
                             </div>
                             <div v-else class="rounded-2xl bg-white border border-dashed border-gray-200 py-3 px-4 text-center text-xs font-bold text-gray-400">
                                 <Loader2 v-if="isFetchingPreview" class="w-4 h-4 animate-spin mx-auto mb-1" />
-                                <span v-if="isFetchingPreview">Buscando imagen…</span>
-                                <span v-else-if="previewFetchFailed">No se encontró imagen. Se reintentará con el fetch periódico.</span>
-                                <span v-else>Sin imagen todavía: se genera sola con el fetch periódico del enlace.</span>
+                                <span v-if="isFetchingPreview">Fetching image…</span>
+                                <span v-else-if="previewFetchFailed">No image found. The periodic fetch will retry it.</span>
+                                <span v-else>No image yet: the periodic fetch will generate it.</span>
                             </div>
 
-                            <input v-model="customBackground" type="url" placeholder="URL de imagen personalizada (opcional) sobreescribe la preview..." class="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
+                            <input v-model="customBackground" type="url" placeholder="Custom image URL (optional) overrides the preview..." class="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-black/5 outline-none text-sm font-medium" />
                         </template>
                     </div>
                 </div>
