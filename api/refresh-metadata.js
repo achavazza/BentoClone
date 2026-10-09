@@ -46,6 +46,10 @@ function faviconFor(rawUrl) {
   }
 }
 
+// Only remote, fetchable images are valid preview art. data:/blob: URIs
+// (e.g. Microlink's "no image" placeholder) are rejected.
+const isRemoteUrl = (u) => typeof u === 'string' && /^https?:\/\//i.test(u)
+
 function decodeEntities(s) {
   return s
     .replace(/&amp;/g, '&')
@@ -113,11 +117,14 @@ async function fetchBehance(url) {
   const d = data?.data || {}
   const pick = (v) => (v && typeof v === 'object' ? (v.value ?? v.url ?? null) : v ?? null)
   const img = d.image && typeof d.image === 'object' ? (d.image.url ?? d.image.value ?? null) : d.image ?? null
+  const logo = pick(d.logo)
   return {
     title: pick(d.title),
     description: pick(d.description),
-    image_url: img || pick(d.logo) || null,
-    favicon_url: pick(d.logo) || faviconFor(url),
+    // Microlink returns a data:-URI placeholder when there's no cover art;
+    // only real remote images are usable.
+    image_url: isRemoteUrl(img) ? img : null,
+    favicon_url: isRemoteUrl(logo) ? logo : faviconFor(url),
     raw_metadata: { status: data.status, data: d }
   }
 }
@@ -187,8 +194,9 @@ export async function refreshWidget(w) {
     platform,
     title: data.title || w.title || null,
     description: data.description || w.description || null,
-    image_url: data.image_url,
-    favicon_url: data.favicon_url,
+    // data:/blob: placeholders are never saved as preview art.
+    image_url: isRemoteUrl(data.image_url) ? data.image_url : null,
+    favicon_url: isRemoteUrl(data.favicon_url) ? data.favicon_url : null,
     raw_metadata: data.raw_metadata || null,
     fetched_at: now,
     updated_at: now

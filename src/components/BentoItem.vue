@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { GripVertical, Pencil } from 'lucide-vue-next';
 import BentoBox from './BentoBox.vue';
 
@@ -95,12 +95,19 @@ const showDescription = computed(() => {
     return props.item.description && props.item.size !== '1x1';
 });
 
-// A social link gets the rich preview treatment only when we actually
-// have cached metadata and the card is big enough (1x1 stays an icon tile).
+// A social link gets the rich preview tile only when we have a real,
+// remote image; otherwise the classic icon layout (and its bg color) stays.
+const previewFailed = ref(false);
 const showPreview = computed(() => {
     return props.item.type === 'social'
         && props.item.size !== '1x1'
-        && !!props.item.preview;
+        && /^https?:\/\//i.test(props.item.preview?.image_url || '')
+        && !previewFailed.value;
+});
+
+// If the widget/preview changes, allow a retry of a failed image.
+watch(() => props.item.preview?.image_url, () => {
+    previewFailed.value = false;
 });
 </script>
 
@@ -178,6 +185,6 @@ const showPreview = computed(() => {
     </div>
 
     <!-- Rich link preview (social widgets with cached metadata) -->
-    <BentoBox v-else :item="item" />
+    <BentoBox v-else :item="item" @failed="previewFailed = true" />
   </div>
 </template>
