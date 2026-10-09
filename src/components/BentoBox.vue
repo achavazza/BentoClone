@@ -62,7 +62,7 @@ const isLightBg = computed(() => {
 
 const titleClass = computed(() => (isLightBg.value ? 'text-gray-900' : 'text-white'));
 const subClass = computed(() => (isLightBg.value ? 'text-gray-800/70' : 'text-white/70'));
-const labelClass = computed(() => (isLightBg.value ? 'text-gray-700/60' : 'text-white/60'));
+const labelClass = computed(() => (isLightBg.value ? 'text-gray-700' : 'text-white'));
 
 // The cover image: a custom background wins, otherwise the crawled preview.
 const bgImageSrc = computed(() => {
