@@ -12,6 +12,54 @@ const props = defineProps({
 
 const emit = defineEmits(['failed']);
 
+// ---- Box-color based scrim + auto text contrast ----
+
+function normalizeHex(c) {
+  const v = (c || '').trim();
+  let m = v.match(/^#?([a-f0-9]{3})$/i);
+  if (m) { const h = m[1]; return '#' + h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; }
+  m = v.match(/^#?([a-f0-9]{6})$/i);
+  if (m) return '#' + m[1].toLowerCase();
+  return null;
+}
+
+function hexToRgb(hex) {
+  const m = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex);
+  return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
+}
+
+function getLuminance(r, g, b) {
+  const [rs, gs, bs] = [r, g, b].map(v => {
+    v = v / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+const baseHex = computed(() => normalizeHex(props.item.bgColor));
+
+// If the box color is light we use dark text over the bottom band.
+const isLightBg = computed(() => {
+  const hex = baseHex.value;
+  if (!hex) return false;
+  const rgb = hexToRgb(hex);
+  return rgb ? getLuminance(rgb.r, rgb.g, rgb.b) >= 0.5 : false;
+});
+
+// Scrim: fade from the box's own color at the bottom to transparent on top.
+const scrimStyle = computed(() => {
+  const hex = baseHex.value;
+  if (!hex) {
+    return { background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, transparent 78%)' };
+  }
+  const { r, g, b } = hexToRgb(hex);
+  return { background: `linear-gradient(to top, rgba(${r},${g},${b},0.95) 0%, rgba(${r},${g},${b},0.6) 45%, transparent 78%)` };
+});
+
+const titleClass = computed(() => (isLightBg.value ? 'text-gray-900' : 'text-white'));
+const subClass = computed(() => (isLightBg.value ? 'text-gray-800/70' : 'text-white/70'));
+const labelClass = computed(() => (isLightBg.value ? 'text-gray-700/60' : 'text-white/60'));
+
 // Keep the widget's own icon when possible; otherwise the cached favicon.
 const faviconSrc = computed(() => {
   const icon = props.item.icon;
@@ -55,8 +103,8 @@ function onImageLoad(e) {
       @load="onImageLoad"
     />
 
-    <!-- Scrim so text stays legible over any image -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10"></div>
+    <!-- Scrim: box color at the bottom fading to transparent -->
+    <div class="absolute inset-0" :style="scrimStyle"></div>
 
     <!-- Text block, anchored to the bottom -->
     <div class="absolute inset-x-0 bottom-0 p-4 md:p-5 flex flex-col gap-1">
@@ -69,16 +117,16 @@ function onImageLoad(e) {
           loading="lazy"
           referrerpolicy="no-referrer"
         />
-        <span class="text-[10px] font-semibold uppercase tracking-wide text-white/60 truncate">
+        <span class="text-[10px] font-semibold uppercase tracking-wide text-white/60 truncate" :class="labelClass">
           {{ platformLabel }}
         </span>
       </div>
-      <span class="font-semibold text-white leading-tight line-clamp-2">
+      <span class="font-semibold leading-tight line-clamp-2" :class="titleClass">
         {{ item.preview?.title || item.title }}
       </span>
       <p
         v-if="(item.preview?.description || item.description) && item.size !== '2x1'"
-        class="text-xs text-white/70 leading-relaxed line-clamp-2"
+        class="text-xs leading-relaxed line-clamp-2" :class="subClass"
       >
         {{ item.preview?.description || item.description }}
       </p>

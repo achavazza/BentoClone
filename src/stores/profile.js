@@ -619,7 +619,12 @@ export const useProfileStore = defineStore('profile', () => {
         });
         if (knownSocialKey) return socialIcons[knownSocialKey];
 
-        // 4. Generic Favicon
+        // 4. Favicon captured by the preview crawler (the site's own icon).
+        if (w.preview?.favicon_url && /^https?:\/\//i.test(w.preview.favicon_url)) {
+            return w.preview.favicon_url
+        }
+
+        // 5. Generic Favicon
         if (w.content && /^https?:\/\//i.test(w.content)) {
             try {
                 const url = new URL(w.content);

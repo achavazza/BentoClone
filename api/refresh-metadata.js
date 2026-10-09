@@ -77,6 +77,33 @@ function getMeta(html, names) {
   return null
 }
 
+// Favourite icon declared in <link rel="icon|shortcut icon|apple-touch-icon">.
+// Falls back to msapplication-TileImage meta. Returns the href as written.
+function getLinkIcon(html) {
+  const candidates = []
+  for (const m of html.matchAll(/<link[^>]*>/gi)) {
+    const tag = m[0]
+    const relMatch = tag.match(/rel=["']([^"']*)["']/i)
+    if (!relMatch) continue
+    const rel = relMatch[1].toLowerCase()
+    if (!/\b(?:icon|shortcut|apple-touch-icon|mask-icon)\b/.test(rel)) continue
+    const hrefMatch = tag.match(/href=["']([^"']+)["']/i)
+    if (!hrefMatch) continue
+    const sizesMatch = tag.match(/sizes=["']([^"']*)["']/i)
+    const sizes = sizesMatch ? sizesMatch[1] : ''
+    candidates.push({
+      href: hrefMatch[1],
+      rel,
+      prio: rel.includes('apple-touch-icon') ? 3 : /sizes/.test(sizes) && sizes.trim() ? 2 : 1
+    })
+  }
+  if (candidates.length) {
+    candidates.sort((a, b) => b.prio - a.prio)
+    return candidates[0].href
+  }
+  return getMeta(html, ['msapplication-TileImage']) || null
+}
+
 // ---------- platform fetchers ----------
 
 async function fetchGithub(url) {
