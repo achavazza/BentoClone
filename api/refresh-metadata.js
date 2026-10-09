@@ -143,8 +143,10 @@ async function fetchOembed(service, url) {
 }
 
 async function fetchBehance(url) {
-  // Fetch the profile page directly: it exposes a real og:image cover.
-  // Microlink (rate-limited to 25/day) returns a data: placeholder instead.
+  // Two sources, both official:
+  //  1. profile <link rel="alternate" type="application/rss+xml"> → only the
+  //     user's own projects; the latest one's cover is the background.
+  //  2. profile og:image as fallback, then the avatar.
   const res = await fetch(url, {
     headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
     signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -157,15 +159,40 @@ async function fetchBehance(url) {
     || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim()
     || null
   const description = getMeta(html, ['og:description', 'twitter:description', 'description'])
+  let projectTitle = null
 
-  // The first /projects/max_808/ image on a profile page is the latest
-  // project's cover; it looks much better than the og:image promo card.
-  const cover = html.match(/https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/max_808\/[^"'\s)<>\\]+/)
-  let image = cover?.[0] || getMeta(html, ['og:image', 'twitter:image'])
-  if (image && !/^https?:/i.test(image)) {
-    try { image = new URL(image, res.url).href } catch { /* keep as-is */ }
+  let image = null
+  const rssHref = html.match(/<link[^>]*rel=["']alternate["'][^>]*type=["']application\/rss\+xml["'][^>]*href=["']([^"']+)["']/i)?.[1]
+  if (rssHref) {
+    try {
+      const rssRes = await fetch(rssHref, {
+        headers: { 'User-Agent': UA },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        redirect: 'follow'
+      })
+      if (rssRes.ok) {
+        const xml = await rssRes.text()
+        const item = xml.match(/<item>([\s\S]*?)<\/item>/)?.[1]
+        if (item) {
+          const strip = (s) => String(s || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim()
+          const cover = item.match(/<img[^>]*src=["']([^"']+)["']/i)?.[1]
+          if (cover && /^https?:\/\//i.test(cover)) {
+            // RSS covers are 404px; the CDN serves the same file bigger.
+            image = cover.replace('/projects/404/', '/projects/max_808/')
+          }
+          projectTitle = strip(item.match(/<title>([\s\S]*?)<\/title>/)?.[1])
+        }
+      }
+    } catch { /* RSS is optional */ }
   }
-  // Fallback: the profile avatar is a usable square cover.
+
+  if (!/^https?:\/\//i.test(image || '')) {
+    const og = getMeta(html, ['og:image', 'twitter:image'])
+    if (og) {
+      try { image = new URL(og, res.url).href } catch { /* keep as-is */ }
+    }
+  }
+
   let slug = ''
   try { slug = new URL(res.url).pathname.split('/').filter(Boolean).pop() || '' } catch { }
   if (!/^https?:\/\//i.test(image || '') && slug) image = `https://unavatar.io/behance/${slug}`
@@ -176,9 +203,9 @@ async function fetchBehance(url) {
   }
 
   return {
-    title: title || 'Behance',
-    description: description || null,
-    image_url: isRemoteUrl(image) ? image : null,
+    title: title || projectTitle || 'Behance',
+    description: description || (projectTitle ? `Latest project: ${projectTitle}` : null),
+    image_url: /^https?:\/\//i.test(image || '') ? image : null,
     favicon_url: favicon || faviconFor(res.url),
     raw_metadata: { final_url: res.url }
   }
