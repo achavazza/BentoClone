@@ -154,7 +154,7 @@ watch(() => [props.item.preview?.image_url, props.item.background_url], () => {
     <div v-if="!showPreview" class="flex-1 flex flex-col justify-left items-start p-6 pointer-events-none">
       
         <!-- Content Rendering -->
-        <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2">
+        <div v-if="item.type === 'social'" class="flex flex-col items-left gap-2 max-w-full">
           <template v-if="item.icon">
             <img v-if="isUrlIcon && !iconFailed" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" @error="iconFailed = true" />
             <div v-else-if="isUrlIcon && iconFailed && iconInitial" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" :class="textPrimaryClass" :style="{ backgroundColor: useLightText ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.06)' }">{{ iconInitial }}</div>

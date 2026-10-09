@@ -134,7 +134,7 @@ function onImageLoad(e) {
     <div class="absolute inset-0" :style="scrimStyle"></div>
 
     <!-- Text block, anchored to the bottom, mirroring the classic layout -->
-    <div class="absolute inset-x-0 bottom-0 p-6 flex flex-col gap-1.5">
+    <div class="absolute inset-x-0 bottom-0 p-6 flex flex-col gap-1.5 max-w-full">
       <template v-if="item.icon">
         <img v-if="isUrlIcon && !iconFailed" :src="item.icon" class="w-10 h-10 rounded-lg object-contain" @error="iconFailed = true" />
         <div v-else-if="isUrlIcon && iconFailed && iconInitial" class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" :class="titleClass" :style="{ backgroundColor: isLightBg ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.15)' }">{{ iconInitial }}</div>
