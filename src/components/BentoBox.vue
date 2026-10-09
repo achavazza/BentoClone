@@ -62,7 +62,6 @@ const isLightBg = computed(() => {
 
 const titleClass = computed(() => (isLightBg.value ? 'text-gray-900' : 'text-white'));
 const subClass = computed(() => (isLightBg.value ? 'text-gray-800/70' : 'text-white/70'));
-const mutedClass = computed(() => (isLightBg.value ? 'text-gray-400' : 'text-white/50'));
 
 // The cover image: a custom background wins, otherwise the crawled preview.
 const bgImageSrc = computed(() => {
@@ -142,10 +141,10 @@ function onImageLoad(e) {
         <i v-else-if="!isUrlIcon" :class="[item.icon, 'text-4xl']"></i>
       </template>
       <div class="flex flex-col min-w-0">
-        <span class="font-semibold leading-tight mb-1 truncate" :class="titleClass">
+        <span class="font-semibold leading-tight mb-1 line-clamp-2" :class="titleClass">
           {{ item.title || item.preview?.title }}
         </span>
-        <span v-if="socialHandle" class="text-xs font-medium truncate" :class="mutedClass">{{ socialHandle }}</span>
+        <span v-if="socialHandle" class="text-xs font-medium truncate" :class="subClass">{{ socialHandle }}</span>
         <p
           v-if="(item.description || item.preview?.description) && item.size !== '1x1'"
           class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="subClass"

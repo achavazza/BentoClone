@@ -161,8 +161,8 @@ watch(() => [props.item.preview?.image_url, props.item.background_url], () => {
             <i v-else-if="!isUrlIcon" :class="[item.icon, 'text-4xl']"></i>
           </template>
           <div class="flex flex-col min-w-0">
-            <span class="font-semibold leading-tight mb-1 truncate" :class="textPrimaryClass">{{ item.title }}</span>
-            <span v-if="socialHandle" class="text-xs font-medium truncate" :class="textMutedClass">{{ socialHandle }}</span>
+            <span class="font-semibold leading-tight mb-1 line-clamp-2" :class="textPrimaryClass">{{ item.title }}</span>
+            <span v-if="socialHandle" class="text-xs font-medium truncate" :class="textSecondaryClass">{{ socialHandle }}</span>
             <p v-if="showDescription" class="text-xs mt-1.5 leading-relaxed line-clamp-2" :class="textSecondaryClass">{{ item.description }}</p>
           </div>
         </div>
