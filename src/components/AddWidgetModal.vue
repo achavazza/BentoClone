@@ -96,8 +96,12 @@ watch(() => props.isOpen, (newVal) => {
         bgColor.value = w.bgColor || '#ffffff';
         size.value = w.size || '1x1';
         selectedIcon.value = w.icon || null;
-        showPreview.value = w.show_preview !== false;
         customBackground.value = w.background_url || '';
+        // A switch ON with no image to show is misleading: stay OFF until
+        // there is a real remote image available.
+        const hasImageNow = /^https?:\/\//i.test(customBackground.value || '')
+            || /^https?:\/\//i.test(props.existingWidget?.preview?.image_url || '');
+        showPreview.value = hasImageNow ? w.show_preview !== false : false;
         faviconOpen.value = false;
         faviconDraft.value = '';
         bgPreviewError.value = false;
@@ -111,12 +115,14 @@ watch(() => props.isOpen, (newVal) => {
          customFavicon.value = '';
          selectedIcon.value = null;
          bgColor.value = '#ffffff';
-         activeTab.value = 'social';
+activeTab.value = 'social';
          size.value = '1x1';
-         showPreview.value = true;
+         // A brand-new link has no preview cached yet: default OFF.
+         showPreview.value = false;
          customBackground.value = '';
          faviconOpen.value = false;
          faviconDraft.value = '';
+         bgPreviewError.value = false;
          uploadError.value = '';
     }
 });
@@ -132,7 +138,11 @@ const bgPreviewSrc = computed(() => {
     return p && /^https?:\/\//i.test(p) ? p : null;
 });
 const bgPreviewError = ref(false);
-watch(customBackground, () => { bgPreviewError.value = false; });
+watch(customBackground, (v) => {
+  bgPreviewError.value = false;
+  // Typing a valid custom image URL turns the background feature on.
+  if (/^https?:\/\//i.test(v || '')) showPreview.value = true;
+});
 
 function selectSocial(opt) {
     selectedIcon.value = opt.icon;
