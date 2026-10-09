@@ -151,20 +151,24 @@ async function fetchBehance(url) {
     redirect: 'follow'
   })
   if (!res.ok) throw new Error(`HTTP ${res.status} from behance.net`)
-  const html = (await res.text()).slice(0, 200_000)
+  const html = await res.text()
 
   const title = getMeta(html, ['og:title', 'twitter:title'])
     || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim()
     || null
   const description = getMeta(html, ['og:description', 'twitter:description', 'description'])
-  let image = getMeta(html, ['og:image', 'twitter:image'])
-  if (image) {
+
+  // The first /projects/max_808/ image on a profile page is the latest
+  // project's cover; it looks much better than the og:image promo card.
+  const cover = html.match(/https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/max_808\/[^"'\s)<>\\]+/)
+  let image = cover?.[0] || getMeta(html, ['og:image', 'twitter:image'])
+  if (image && !/^https?:/i.test(image)) {
     try { image = new URL(image, res.url).href } catch { /* keep as-is */ }
   }
   // Fallback: the profile avatar is a usable square cover.
   let slug = ''
   try { slug = new URL(res.url).pathname.split('/').filter(Boolean).pop() || '' } catch { }
-  if (!isRemoteUrl(image) && slug) image = `https://unavatar.io/behance/${slug}`
+  if (!/^https?:\/\//i.test(image || '') && slug) image = `https://unavatar.io/behance/${slug}`
 
   let favicon = getLinkIcon(html)
   if (favicon) {
