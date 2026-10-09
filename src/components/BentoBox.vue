@@ -33,6 +33,14 @@ const platformLabel = computed(() => {
 function onImageError() {
   emit('failed');
 }
+
+// Logos/favicons masquerading as og:image are tiny; stretched as a cover
+// they look broken. Skip images smaller than 220px on either side.
+function onImageLoad(e) {
+  const w = e.currentTarget.naturalWidth;
+  const h = e.currentTarget.naturalHeight;
+  if (!w || !h || Math.min(w, h) < 220) emit('failed');
+}
 </script>
 
 <template>
@@ -44,6 +52,7 @@ function onImageError() {
       loading="lazy"
       referrerpolicy="no-referrer"
       @error="onImageError"
+      @load="onImageLoad"
     />
 
     <!-- Scrim so text stays legible over any image -->
